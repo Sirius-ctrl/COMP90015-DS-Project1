@@ -1,4 +1,4 @@
-package dictionary;
+package server;
 
 public class Main {
 
