@@ -20,6 +20,7 @@ public class Client {
         try {
             Socket socket = new Socket(ip_addr, port);
 
+            println("connected with the client");
             // create data stream for socket
             DataInputStream input = new DataInputStream(socket.getInputStream());
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());

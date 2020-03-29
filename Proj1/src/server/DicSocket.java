@@ -9,13 +9,13 @@ public class DicSocket implements Runnable {
 
     private final Socket client;
 
-    public DicSocket(Socket client) throws IOException {
+    public DicSocket(Socket client) {
         this.client = client;
     }
 
     @Override
     public void run() {
-
+        System.out.println();
         try {
             DataInputStream input = new DataInputStream(client.getInputStream());
             DataOutputStream output = new DataOutputStream(client.getOutputStream());

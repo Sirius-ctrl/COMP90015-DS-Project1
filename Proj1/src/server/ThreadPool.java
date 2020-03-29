@@ -1,20 +1,26 @@
 package server;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
 
 public class ThreadPool {
 
     private final LinkedBlockingQueue<Runnable> queue;
-    private Worker[] workers;
+    private ArrayList<Thread> workers;
 
     public ThreadPool(int totalThread) {
         println("creating a pool with " + totalThread +" workers");
         this.queue = new LinkedBlockingQueue<>();
-        this.workers = new Worker[totalThread];
+        this.workers = new ArrayList<>();
 
+        // add the worker thread to a flexible arrayList so that we can easily
+        // manage it without need to manually change the size of the worker array
         for (int i = 0; i < totalThread; i++) {
-            workers[i] = new Worker();
-            workers[i].start();
+            workers.add(new Worker());
+        }
+
+        for (Thread r:workers){
+            r.start();
         }
     }
 
@@ -47,7 +53,7 @@ public class ThreadPool {
                     }
 
                     //end waiting
-                    task = (Runnable) queue.poll();
+                    task = queue.poll();
                 }
 
                 // may cause thread leaking if not catch the error
