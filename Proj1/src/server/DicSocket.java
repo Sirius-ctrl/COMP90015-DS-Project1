@@ -1,5 +1,7 @@
 package server;
 
+import org.json.JSONObject;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -20,7 +22,7 @@ public class DicSocket implements Runnable {
             DataInputStream input = new DataInputStream(client.getInputStream());
             DataOutputStream output = new DataOutputStream(client.getOutputStream());
 
-            String recvLine, sendLine;
+            String recvLine, sendLine = "Unknown Command, please try again";
 
             while ( true ) {
                 System.out.println("==== receiving messages ====");
@@ -31,8 +33,29 @@ public class DicSocket implements Runnable {
                     break;
                 }
 
-                sendLine = "Received Message: " + recvLine;
-                // todo : send query/add/delete feedback to client
+                // todo: might need to handle if recvLine is not a proper json string
+                JSONObject query = new JSONObject(recvLine);
+
+                System.out.println(query.toString());
+
+                // todo : I might think to remove the feedback class which is unnecessary
+                // todo : create a method to handle any query to the dictionary
+                if (query.has("query")) {
+                    sendLine = myDict.query(query.getString("query")).getMessage();
+                } else if (query.has("add")) {
+
+                    if (query.has("meaning")){
+                        sendLine = myDict.add(query.getString("add"), query.getString("meaning")).getMessage();
+                    } else {
+                        sendLine = "Error: no meaning provided";
+                    }
+
+                } else if (query.has("delete")) {
+                    myDict.delete(query.getString("delete"));
+                } else {
+                    sendLine = "Unknown Command, please try again";
+                }
+
                 output.writeUTF(sendLine);
                 output.flush();
                 System.out.println("==== responds sent ====");

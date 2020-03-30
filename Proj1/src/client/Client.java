@@ -28,7 +28,9 @@ public class Client {
 
             while (true) {
                 System.out.print("Message: ");
+                // the msg should be a json string
                 String msg = userIn.nextLine();
+
 
                 if (msg.isEmpty() || msg.equals("$bye")) {
                     output.writeUTF(msg);
