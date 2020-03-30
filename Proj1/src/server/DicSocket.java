@@ -6,9 +6,11 @@ import java.net.Socket;
 public class DicSocket implements Runnable {
 
     private final Socket client;
+    private Dictionary myDict;
 
-    public DicSocket(Socket client) {
+    public DicSocket(Socket client, Dictionary myDict) {
         this.client = client;
+        this.myDict = myDict;
     }
 
     @Override
@@ -30,6 +32,7 @@ public class DicSocket implements Runnable {
                 }
 
                 sendLine = "Received Message: " + recvLine;
+                // todo : send query/add/delete feedback to client
                 output.writeUTF(sendLine);
                 output.flush();
                 System.out.println("==== responds sent ====");

@@ -19,7 +19,7 @@ public class Server {
 	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
 	private static int port = 3456;
 	@Parameter(names={"--dict", "-d"}, description = "Path to dictionary")
-	private static String dict = "./dictionary.json";
+	private static String dict_path = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
 
@@ -27,11 +27,12 @@ public class Server {
 		// parse the command line arguments
 		JCommander.newBuilder().addObject(new Server()).build().parse(args);
 
-	    println("Listening on " + port + " using " + dict);
+	    println("Listening on " + port + " using " + dict_path);
 
 		ThreadPool pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
+		Dictionary my_dict = new Dictionary(dict_path);
 
 		try {
 			ServerSocket server = factory.createServerSocket(port);
@@ -39,7 +40,7 @@ public class Server {
 
 			while (true) {
 				Socket client = server.accept();
-				Runnable connection = new DicSocket(client);
+				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);
 			}
 
