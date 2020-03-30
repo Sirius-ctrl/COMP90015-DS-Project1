@@ -10,15 +10,26 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.beust.jcommander.JCommander;
+
+import com.beust.jcommander.Parameter;
+
 public class Server {
+	// parameters variable
+	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
+	private static int port = 3456;
+	@Parameter(names={"--dict", "-d"}, description = "Path to dictionary")
+	private static String dict = "./dictionary.json";
+	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
+	private static int workers = 10;
 
-    public static void main(String[] args) {
+    public static void main(String...args) {
+		// parse the command line arguments
+		JCommander.newBuilder().addObject(new Server()).build().parse(args);
 
-	    final int port = Integer.decode(args[0]);
-	    final String dict = args[1];
 	    println("Listening on " + port + " using " + dict);
 
-		ThreadPool pool = new ThreadPool(Integer.parseInt(args[2]));
+		ThreadPool pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 

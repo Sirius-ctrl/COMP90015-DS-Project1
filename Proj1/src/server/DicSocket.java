@@ -14,9 +14,6 @@ public class DicSocket implements Runnable {
     @Override
     public void run() {
         try {
-//            BufferedWriter output =
-//                    new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
-//            BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
             DataInputStream input = new DataInputStream(client.getInputStream());
             DataOutputStream output = new DataOutputStream(client.getOutputStream());
@@ -31,7 +28,6 @@ public class DicSocket implements Runnable {
                 if (recvLine.equals("$bye")) {
                     break;
                 }
-                // todo : make this function can receive command multiple times
 
                 sendLine = "Received Message: " + recvLine;
                 output.writeUTF(sendLine);

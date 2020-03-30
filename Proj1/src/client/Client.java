@@ -22,8 +22,6 @@ public class Client {
             println("==== connected with the client ====");
             // create data stream for socket
             DataInputStream input = new DataInputStream(socket.getInputStream());
-//            BufferedWriter output =
-//                    new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
             Scanner userIn = new Scanner(System.in);
