@@ -6,6 +6,9 @@ import org.json.JSONTokener;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import feedback.Feedback;
+import feedback.FeedbackType;
+
 public class Dictionary {
 
     public String dict_path;
@@ -42,27 +45,28 @@ public class Dictionary {
     // todo: finish this query function
     // find a meaning of a word from dictionary, return either
     // the meaning string or error message (word not found)
-    public String query(String word) {
+    public Feedback query(String word) {
+
         if (english_dict.has(word)){
-            return english_dict.getString(word);
+            return new Feedback(FeedbackType.SUCCESS, english_dict.getString(word));
         } else {
-            // todo : create a class to handle the error message
-            return "Word not exist";
+            return new Feedback(FeedbackType.ERROR,"Word not exist");
         }
+
     }
 
     // todo : finish this function
     // add a word to dictionary with meaning while return String could be
     // either success or error message (word already exist)
-    public synchronized String add(String word, String meaning){
-        return "not been implemented yet";
+    public synchronized Feedback add(String word, String meaning){
+        return new Feedback(FeedbackType.ERROR, "word already exist");
     }
 
     // todo : finish this function
     // delete an word from the dictionary and remember to delete from disk
     // return either success or error message (word does not exist)
-    public synchronized String delete(String word) {
-        return "not been implemented yet";
+    public synchronized Feedback delete(String word) {
+        return new Feedback(FeedbackType.ERROR, "word does not exist");
     }
 
 }

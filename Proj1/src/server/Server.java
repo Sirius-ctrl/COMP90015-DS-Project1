@@ -4,6 +4,7 @@ import server.ThreadPool;
 import server.SimpleTask;
 import server.DicSocket;
 
+
 import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,7 +18,6 @@ public class Server {
 	    final String dict = args[1];
 	    println("Listening on " + port + " using " + dict);
 
-	    println("now testing the thread pool with " + args[2] + " workers");
 		ThreadPool pool = new ThreadPool(Integer.parseInt(args[2]));
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();

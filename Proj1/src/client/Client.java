@@ -1,9 +1,8 @@
 package client;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 public class Client {
 
@@ -20,21 +19,36 @@ public class Client {
         try {
             Socket socket = new Socket(ip_addr, port);
 
-            println("connected with the client");
+            println("==== connected with the client ====");
             // create data stream for socket
             DataInputStream input = new DataInputStream(socket.getInputStream());
+//            BufferedWriter output =
+//                    new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
-            String helloData = "I want to connect";
+            Scanner userIn = new Scanner(System.in);
 
-            output.writeUTF(helloData);
-            output.flush();
+            while (true) {
+                System.out.print("Message: ");
+                String msg = userIn.nextLine();
 
-            while (input.available() > 0) {
+                if (msg.isEmpty() || msg.equals("$bye")) {
+                    output.writeUTF(msg);
+                    output.flush();
+                    break;
+                }
+
+                output.writeUTF(msg);
+                output.flush();
+
+                println("==== waiting for responds ====");
                 String message = input.readUTF();
                 println(message);
             }
 
+            input.close();
+            output.close();
+            socket.close();
         } catch (IOException e) {
             println("client socket error: ");
             println(e.getMessage());

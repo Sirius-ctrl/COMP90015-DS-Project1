@@ -1,8 +1,6 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 public class DicSocket implements Runnable {
@@ -15,27 +13,38 @@ public class DicSocket implements Runnable {
 
     @Override
     public void run() {
-        System.out.println();
         try {
+//            BufferedWriter output =
+//                    new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+//            BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
+
             DataInputStream input = new DataInputStream(client.getInputStream());
             DataOutputStream output = new DataOutputStream(client.getOutputStream());
 
-            String msg = input.readUTF();
-            System.out.println("Client: "+ msg );
+            String recvLine, sendLine;
 
-            // todo : make this function can receive command multiple times
+            while ( true ) {
+                System.out.println("==== receiving messages ====");
+                recvLine = input.readUTF();
+                System.out.println("Client: " + recvLine + " len:" + recvLine.length());
 
-            String reply = "Received Message: " + msg;
-            output.writeUTF(reply);
-            output.flush();
+                if (recvLine.equals("$bye")) {
+                    break;
+                }
+                // todo : make this function can receive command multiple times
 
-            // close all the thing when finish
+                sendLine = "Received Message: " + recvLine;
+                output.writeUTF(sendLine);
+                output.flush();
+                System.out.println("==== responds sent ====");
+            }
+
+            System.out.println("==== User Disconnected ====");
             input.close();
             output.close();
             client.close();
         } catch (IOException e) {
-            System.out.println("Error occur when server communicating with client in DicSocket:");
-            System.out.println(e.getMessage());
+            System.out.println("Error occur when server communicating with client in DicSocket:" + e.getMessage());
         }
     }
 }
