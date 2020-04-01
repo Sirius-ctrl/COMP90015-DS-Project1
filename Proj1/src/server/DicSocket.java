@@ -1,5 +1,7 @@
 package server;
 
+import feedback.Feedback;
+import feedback.FeedbackType;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -39,22 +41,8 @@ public class DicSocket implements Runnable {
                 System.out.println(query.toString());
 
                 // todo : I might think to remove the feedback class which is unnecessary
-                // todo : create a method to handle any query to the dictionary
-                if (query.has("query")) {
-                    sendLine = myDict.query(query.getString("query")).getMessage();
-                } else if (query.has("add")) {
+                sendLine = processQuery(query);
 
-                    if (query.has("meaning")){
-                        sendLine = myDict.add(query.getString("add"), query.getString("meaning")).getMessage();
-                    } else {
-                        sendLine = "Error: no meaning provided";
-                    }
-
-                } else if (query.has("delete")) {
-                    myDict.delete(query.getString("delete"));
-                } else {
-                    sendLine = "Unknown Command, please try again";
-                }
 
                 output.writeUTF(sendLine);
                 output.flush();
@@ -68,5 +56,27 @@ public class DicSocket implements Runnable {
         } catch (IOException e) {
             System.out.println("Error occur when server communicating with client in DicSocket:" + e.getMessage());
         }
+    }
+
+    private String processQuery(JSONObject query) {
+        Feedback sendLine = new Feedback(FeedbackType.ERROR, "Unknown instruction, please check again");
+
+        if (query.has("find")) {
+            sendLine = myDict.find(query.getString("find"));
+
+        } else if (query.has("add")) {
+
+            if (query.has("meaning")) {
+                sendLine = myDict.add(query.getString("add"), query.getString("meaning"));
+            } else {
+                // todo : this should be checked at client side in order to save server resources
+                sendLine = new Feedback(FeedbackType.ERROR, "No meaning provided");
+            }
+
+        } else if (query.has("del")) {
+            sendLine = myDict.delete(query.getString("del"));
+        }
+
+        return sendLine.toJsonString();
     }
 }

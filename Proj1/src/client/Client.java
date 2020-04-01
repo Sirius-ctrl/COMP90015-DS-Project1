@@ -46,6 +46,7 @@ public class Client {
                 println(message);
             }
 
+            // close all when finish
             input.close();
             output.close();
             socket.close();

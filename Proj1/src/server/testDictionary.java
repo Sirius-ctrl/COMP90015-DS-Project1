@@ -8,12 +8,16 @@ import org.json.JSONObject;
 public class testDictionary {
     public static void main(String[] args) {
         Dictionary my_dict = new Dictionary();
-        Feedback now = my_dict.query("apple");
+        String now = my_dict.find("apple").toJsonString();
 
-        if (now.getFeedbackType() == FeedbackType.ERROR) {
-            System.out.println("Error: "+now.getMessage());
+        System.out.println(now);
+        //todo:finish testing here
+        JSONObject feedback = new JSONObject(now);
+
+        if (feedback.has("ERROR")) {
+            System.out.println(feedback.getString("ERROR"));
         } else {
-            System.out.println(now.getMessage());
+            System.out.println(feedback.getString("SUCCESS"));
         }
 
     }

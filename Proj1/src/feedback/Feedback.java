@@ -1,5 +1,6 @@
 package feedback;
 import feedback.FeedbackType;
+import org.json.JSONObject;
 
 public class Feedback {
     private FeedbackType fType;
@@ -16,5 +17,11 @@ public class Feedback {
 
     public String getMessage() {
         return this.message;
+    }
+
+    public String toJsonString() {
+        JSONObject temp = new JSONObject();
+        temp.put(fType.toString(), message);
+        return temp.toString();
     }
 }
