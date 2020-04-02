@@ -61,8 +61,8 @@ public class DicSocket implements Runnable {
     private String processQuery(JSONObject query) {
         Feedback sendLine = new Feedback(FeedbackType.ERROR, "Unknown instruction, please check again");
 
-        if (query.has("find")) {
-            sendLine = myDict.find(query.getString("find"));
+        if (query.has("search")) {
+            sendLine = myDict.search(query.getString("search"));
 
         } else if (query.has("add")) {
 

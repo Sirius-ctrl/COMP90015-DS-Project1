@@ -8,7 +8,7 @@ import org.json.JSONObject;
 public class testDictionary {
     public static void main(String[] args) {
         Dictionary my_dict = new Dictionary();
-        String now = my_dict.find("apple").toJsonString();
+        String now = my_dict.search("apple").toJsonString();
 
         System.out.println(now);
         //todo:finish testing here

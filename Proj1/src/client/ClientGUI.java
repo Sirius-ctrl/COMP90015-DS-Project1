@@ -19,25 +19,43 @@ public class ClientGUI {
 
     public ClientGUI() {
 
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String userInput = input.getText();
+        searchButton.addActionListener(e -> {
+            String userInput = input.getText();
 
-                System.out.println(userInput.length());
+            System.out.println(userInput.length());
 
-                if (userInput.length() == 0) {
-                    output.setText("Please enter a search word!");
+            if (userInput.length() == 0) {
+                output.setText("Please enter a search word!");
+                return;
+            }
+
+            // trying to remove all the thing that not alpha before next step
+            for (int i = 0; i < userInput.length(); i++) {
+                if(!Character.isAlphabetic(userInput.charAt(i))) {
+                    String out = "Please enter a valid word which only contains alphabetic!\n Do you mean: ";
+                    String correction = "";
+                    // try to correct the word
+                    for (int j = 0; j < userInput.length(); j++) {
+                        if(!Character.isAlphabetic(userInput.charAt(j))) {
+                            continue;
+                        }
+                        correction += userInput.charAt(j);
+                    }
+                    output.setText(out+correction);
+                    input.setText(correction);
                     return;
                 }
-
-                //todo : finish this
-                output.setText("Searching |" + userInput + "|");
-
-                // reset the input section
-                input.setText("");
             }
+
+            output.setText("Searching |" + userInput + "|");
+
+            // set the feedback to text panel
+            output.setText(client.search(userInput.toLowerCase()));
+
+            // reset the input section in order to wait for the next input
+            input.setText("");
         });
+
 
         addButton.addActionListener(e -> {
             String userInput = input.getText();
@@ -50,6 +68,7 @@ public class ClientGUI {
             String meaning = JOptionPane.showInputDialog("please give a meaning");
             output.setText("Adding " + userInput + ":\n" + meaning);
         });
+        
 
         deleteButton.addActionListener(new ActionListener() {
             @Override
@@ -62,7 +81,7 @@ public class ClientGUI {
                 }
 
                 //todo : connect to client and delete the word
-                output.setText(client.delete(userInput));
+                //output.setText(client.delete(userInput));
             }
         });
 
@@ -75,7 +94,7 @@ public class ClientGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        frame.setSize(500,400);
+        frame.setSize(1000,600);
     }
 
     public static ClientGUI getGUI() {

@@ -43,7 +43,7 @@ public class Dictionary {
 
     // find a meaning of a word from dictionary, return either
     // the meaning string or error message (word not found)
-    public Feedback find(String word) {
+    public Feedback search(String word) {
 
         if (english_dict.has(word)){
             return new Feedback(FeedbackType.SUCCESS, english_dict.getString(word));
