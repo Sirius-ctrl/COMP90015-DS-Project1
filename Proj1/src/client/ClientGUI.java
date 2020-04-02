@@ -13,6 +13,8 @@ public class ClientGUI {
     private JButton deleteButton;
     private JTextField input;
     private JEditorPane output;
+    private JCheckBox beautify;
+    private JCheckBox fixUploadFormat;
 
     private static Client client = Client.getClient();
     private static ClientGUI gui;
@@ -33,16 +35,16 @@ public class ClientGUI {
             for (int i = 0; i < userInput.length(); i++) {
                 if(!Character.isAlphabetic(userInput.charAt(i))) {
                     String out = "Please enter a valid word which only contains alphabetic!\n Do you mean: ";
-                    String correction = "";
+                    StringBuilder correction = new StringBuilder();
                     // try to correct the word
                     for (int j = 0; j < userInput.length(); j++) {
                         if(!Character.isAlphabetic(userInput.charAt(j))) {
                             continue;
                         }
-                        correction += userInput.charAt(j);
+                        correction.append(userInput.charAt(j));
                     }
-                    output.setText(out+correction);
-                    input.setText(correction);
+                    output.setText(out + correction.toString());
+                    input.setText(correction.toString());
                     return;
                 }
             }
@@ -50,7 +52,7 @@ public class ClientGUI {
             output.setText("Searching |" + userInput + "|");
 
             // set the feedback to text panel
-            output.setText(client.search(userInput.toLowerCase()));
+            output.setText(client.search(userInput.toLowerCase(), beautify.isSelected()));
 
             // reset the input section in order to wait for the next input
             input.setText("");
@@ -64,25 +66,47 @@ public class ClientGUI {
                 output.setText("Please enter the word you want to add!");
                 return;
             }
-            // todo : finish this
-            String meaning = JOptionPane.showInputDialog("please give a meaning");
-            output.setText("Adding " + userInput + ":\n" + meaning);
-        });
-        
 
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String userInput = input.getText();
+            // trying to remove all the thing that not alpha before next step
+            for (int i = 0; i < userInput.length(); i++) {
+                if(!Character.isAlphabetic(userInput.charAt(i))) {
+                    String out = "Please enter a valid word which only contains alphabetic!\nDo you mean: ";
+                    StringBuilder correction = new StringBuilder();
+                    // try to correct the word
+                    for (int j = 0; j < userInput.length(); j++) {
+                        if(!Character.isAlphabetic(userInput.charAt(j))) {
+                            continue;
+                        }
+                        correction.append(userInput.charAt(j));
+                    }
 
-                if (userInput.length() == 0) {
-                    output.setText("Please enter the word you want to delete!");
+                    output.setText(output.getText() + "\n----------------------\n" + out + correction.toString() + "?");
+                    input.setText(correction.toString());
+
                     return;
                 }
-
-                //todo : connect to client and delete the word
-                //output.setText(client.delete(userInput));
             }
+
+            String meaning = output.getText();
+
+            // add "$*$" to user meaning if keep format
+            // todo : finish interaction with client
+
+            output.setText("Added " + userInput + ":\n" + meaning);
+            input.setText("");
+        });
+
+
+        deleteButton.addActionListener(e -> {
+            String userInput = input.getText();
+
+            if (userInput.length() == 0) {
+                output.setText("Please enter the word you want to delete!");
+                return;
+            }
+
+            //todo : connect to client and delete the word
+            //output.setText(client.delete(userInput));
         });
 
         buildGUI();
@@ -108,4 +132,5 @@ public class ClientGUI {
     public void setOutput(String text) {
         output.setText(text);
     }
+
 }

@@ -42,6 +42,7 @@ public class Server {
 				Socket client = server.accept();
 				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);
+				System.out.println("==== New Connection Established ====");
 			}
 
 		} catch (IOException e){
@@ -54,5 +55,9 @@ public class Server {
 
     public static void println(String thing) {
     	System.out.println(thing);
+	}
+
+	public static void closeAll(){
+    	// todo : finish this
 	}
 }

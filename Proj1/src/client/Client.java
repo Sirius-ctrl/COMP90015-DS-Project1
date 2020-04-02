@@ -56,7 +56,7 @@ public class Client {
     }
 
 
-    public String search(String word) {
+    public String search(String word, boolean beautify) {
         JSONObject obj = new JSONObject();
         obj.put("search", word);
         println(obj.toString());
@@ -69,7 +69,20 @@ public class Client {
             JSONObject feedback = new JSONObject(input.readUTF());
 
             if (feedback.has("SUCCESS")) {
-                return resHeader + beautifySearch(feedback.getString("SUCCESS"));
+
+                String feedbackString = feedback.getString("SUCCESS");
+
+                // todo: test this is actually working
+                // reserved starting substring that means user want to keep the format
+                if (feedbackString.substring(0,3).equals("$*$")) {
+                    beautify = false;
+                }
+
+                if (beautify) {
+                    return resHeader + beautifySearch(feedbackString);
+                } else {
+                    return resHeader + feedbackString;
+                }
             } else {
                 return resHeader + feedback.getString("ERROR");
             }
@@ -86,6 +99,17 @@ public class Client {
         StringBuilder res = new StringBuilder();
         boolean firstSeen = true;
 
+        // check whether we need to beautify the string (skip the user add string)
+        for (int i = 0; i < context.length(); i++) {
+            if (context.charAt(i) == '-') {
+                if ((i+2 < context.length()) && (context.charAt(i+1) == '-')){
+                    if (context.charAt(i-1) == '\n'){
+                        return context;
+                    }
+                }
+            }
+        }
+
         for (int i = 0; i < context.length(); i++) {
 
             if (context.charAt(i) == '-') {
@@ -100,7 +124,7 @@ public class Client {
                     // -1 as otherwise it will skip the next one
                     String subsection = context.substring(i, endSection-1);
 
-                    res.append("\n").append(indentationCorrect(subsection, "\n      "));
+                    res.append("\n").append(indentationCorrecter(subsection, "\n      "));
 
                     i = endSection-1;
                 }
@@ -108,7 +132,7 @@ public class Client {
                 // not yet reach the terms section
                 int endSection = chopNotTermSection(context, i);
                 String subsection = context.substring(i, endSection);
-                res.append(indentationCorrect(subsection+"\n", "\n"));
+                res.append(indentationCorrecter(subsection+"\n", "\n"));
                 i = endSection;
             } else {
                 res.append(context.charAt(i));
@@ -154,16 +178,16 @@ public class Client {
         return end;
     }
 
-    private String indentationCorrect (String context, String indentation) {
+    private String indentationCorrecter (String context, String indentation) {
         StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < context.length(); i++) {
 
             if (i < context.length()-3) {
                 // found things like |2. |
-                if (Character.isDigit(context.charAt(i)) && context.charAt(i + 1) == '.' && context.charAt(i + 2) == ' ') {
-                    if (context.charAt(i + 3) == '(' || Character.isAlphabetic(context.charAt(i + 3))) {
-                        res.append(indentation).append(context, i, i + 3);
+                if (Character.isDigit(context.charAt(i)) && context.charAt(i+1) == '.' && context.charAt(i+2) == ' ') {
+                    if (context.charAt(i+3) == '(' || Character.isAlphabetic(context.charAt(i+3))) {
+                        res.append(indentation).append(context, i, i+3);
                         i += 3;
                     }
                 }
