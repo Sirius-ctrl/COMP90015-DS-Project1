@@ -14,36 +14,79 @@ public class ClientGUI {
     private JTextField input;
     private JEditorPane output;
 
+    private static Client client = Client.getClient();
+    private static ClientGUI gui;
+
     public ClientGUI() {
+
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String tamp = input.getText();
-                output.setText("Searching |" + tamp + "|");
+                String userInput = input.getText();
+
+                System.out.println(userInput.length());
+
+                if (userInput.length() == 0) {
+                    output.setText("Please enter a search word!");
+                    return;
+                }
+
+                //todo : finish this
+                output.setText("Searching |" + userInput + "|");
+
+                // reset the input section
+                input.setText("");
             }
         });
 
         addButton.addActionListener(e -> {
-            String text = "";
-            text = JOptionPane.showInputDialog("please give a meaning");
-            output.setText(text);
+            String userInput = input.getText();
+
+            if (userInput.length() == 0) {
+                output.setText("Please enter the word you want to add!");
+                return;
+            }
+            // todo : finish this
+            String meaning = JOptionPane.showInputDialog("please give a meaning");
+            output.setText("Adding " + userInput + ":\n" + meaning);
         });
 
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                output.setText("");
+                String userInput = input.getText();
+
+                if (userInput.length() == 0) {
+                    output.setText("Please enter the word you want to delete!");
+                    return;
+                }
+
+                //todo : connect to client and delete the word
+                output.setText(client.delete(userInput));
             }
         });
+
+        buildGUI();
     }
 
-
-    public static void main(String[] args) {
+    public void buildGUI() {
         JFrame frame = new JFrame("Dictionary");
-        frame.setContentPane(new ClientGUI().background);
+        frame.setContentPane(this.background);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
         frame.setSize(500,400);
+    }
+
+    public static ClientGUI getGUI() {
+        if (gui == null) {
+            gui = new ClientGUI();
+        }
+
+        return gui;
+    }
+
+    public void setOutput(String text) {
+        output.setText(text);
     }
 }
