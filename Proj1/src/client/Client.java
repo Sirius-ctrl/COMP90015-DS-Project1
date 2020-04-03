@@ -6,7 +6,10 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.Socket;
 
+import feedback.*;
+
 import static java.lang.System.exit;
+import static java.lang.System.out;
 
 public class Client {
 
@@ -32,22 +35,18 @@ public class Client {
     }
 
 
-    public String connect() {
-
+    public Feedback connect() {
         try {
             socket = new Socket(ip_addr, port);
 
             println("==== initiate connection with the sever ====");
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
-            return "Connection initiate successfully, \nplease enter the word you want to search/add/remove";
-
+            return new Feedback(FeedbackType.SUCCESS, "connection built!");
         } catch (IOException e) {
-            println("==== Connection initiate failed! The server might not be available yet! ====");
-            exit(1);
+            return new Feedback(FeedbackType.ERROR,"Connection initiate failed! " +
+                    "The server might not be available yet!\n Please try again later or check network connection!");
         }
-
-        return "";
     }
 
     public static void println(String thing) {
@@ -56,6 +55,16 @@ public class Client {
 
 
     public String search(String word, boolean beautify) {
+
+        Feedback connect = connect();
+
+        // build connection first
+        if (connect.getFeedbackType() == FeedbackType.ERROR) {
+            return connect.getMessage();
+        } else {
+            println(connect.getMessage());
+        }
+
         JSONObject obj = new JSONObject();
         obj.put("search", word);
         println(obj.toString());
@@ -66,6 +75,9 @@ public class Client {
             output.flush();
 
             JSONObject feedback = new JSONObject(input.readUTF());
+
+            // query finish, disconnect with server
+            goodbye();
 
             if (feedback.has("SUCCESS")) {
 
@@ -195,6 +207,20 @@ public class Client {
         }
 
         return res.toString();
+    }
+
+
+    private void goodbye() throws IOException {
+        output.writeUTF("$bye");
+        output.flush();
+
+        input.close();
+        output.close();
+        socket.close();
+
+        input = null;
+        output = null;
+        socket = null;
     }
 
 

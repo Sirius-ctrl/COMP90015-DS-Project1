@@ -14,7 +14,7 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(client::closeAll));
 
         ClientGUI gui = ClientGUI.getGUI();
-        output = client.connect();
-        gui.setOutput(output);
+        gui.setOutput("Welcome, please enter a word in the above blank if you want to search/delete, " +
+                "or write some extra meaning in this section to submit a meaning of a new word");
     }
 }
