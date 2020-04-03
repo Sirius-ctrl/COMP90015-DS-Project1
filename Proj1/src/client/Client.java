@@ -49,10 +49,6 @@ public class Client {
         }
     }
 
-    public static void println(String thing) {
-        System.out.println(thing);
-    }
-
 
     public String search(String word, boolean beautify) {
 
@@ -65,6 +61,7 @@ public class Client {
             println(connect.getMessage());
         }
 
+        //try to parse the result
         JSONObject obj = new JSONObject();
         obj.put("search", word);
         println(obj.toString());
@@ -89,10 +86,12 @@ public class Client {
                     beautify = false;
                 }
 
+                Beautifier bu = Beautifier.getBeautifier();
+
                 if (beautify) {
-                    return resHeader + beautifySearch(feedbackString);
+                    return resHeader + bu.beautifySearch(feedbackString);
                 } else {
-                    return resHeader + feedbackString;
+                    return resHeader + bu.beautifySearch(feedbackString, true);
                 }
             } else {
                 return resHeader + feedback.getString("ERROR");
@@ -106,109 +105,11 @@ public class Client {
     }
 
 
-    public String beautifySearch(String context) {
-        StringBuilder res = new StringBuilder();
-        boolean firstSeen = true;
-
-        // check whether we need to beautify the string (skip the user add string)
-        for (int i = 0; i < context.length(); i++) {
-            if (context.charAt(i) == '-') {
-                if ((i+2 < context.length()) && (context.charAt(i+1) == '-')){
-                    if (context.charAt(i-1) == '\n'){
-                        return context;
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < context.length(); i++) {
-
-            if (context.charAt(i) == '-') {
-                if ((i+2 < context.length()) && (context.charAt(i+1) == '-')){
-                    if (firstSeen) {
-                        res.append("\n\n**** useful terms ****\n");
-                        firstSeen = false;
-                    }
-
-                    // two -- occur, i+1 for skip the current --
-                    int endSection = chopTermSection(context, i+1);
-                    // -1 as otherwise it will skip the next one
-                    String subsection = context.substring(i, endSection-1);
-
-                    res.append("\n").append(indentationCorrecter(subsection, "\n      "));
-
-                    i = endSection-1;
-                }
-            } else if (firstSeen) {
-                // not yet reach the terms section
-                int endSection = chopNotTermSection(context, i);
-                String subsection = context.substring(i, endSection);
-                res.append(indentationCorrecter(subsection+"\n", "\n"));
-                i = endSection;
-            } else {
-                res.append(context.charAt(i));
-            }
-        }
-
-        return res.toString();
+    public String add(String word, String meaning) {
+        //assume all the word and meaning reach here are valid
+        // todo : finish this and test $*$ can keep the format
+        return "";
     }
-
-
-    public int chopNotTermSection(String context, int start) {
-        int end;
-        //find the next \n
-
-        for (end = start; end < context.length(); end++) {
-            // if we walk into terms section, just early return
-            if (context.charAt(end) == '-'){
-                if ((end+1 < context.length()) && (context.charAt(end+1) == '-')) {
-                    return end-1;
-                }
-            }
-
-            if (context.charAt(end) == '\n'){
-                return end;
-            }
-        }
-
-        return end;
-    }
-
-
-    private int chopTermSection(String context, int start) {
-        int end;
-        // find the position of next proper "-"
-        for (end = start+1; end < context.length(); end++) {
-            if(context.charAt(end) == '-') {
-                if ((end+1 < context.length()) && (context.charAt(end+1) == '-')) {
-                    return end;
-                }
-            }
-        }
-
-        return end;
-    }
-
-    private String indentationCorrecter (String context, String indentation) {
-        StringBuilder res = new StringBuilder();
-
-        for (int i = 0; i < context.length(); i++) {
-
-            if (i < context.length()-3) {
-                // found things like |2. |
-                if (Character.isDigit(context.charAt(i)) && context.charAt(i+1) == '.' && context.charAt(i+2) == ' ') {
-                    if (context.charAt(i+3) == '(' || Character.isAlphabetic(context.charAt(i+3))) {
-                        res.append(indentation).append(context, i, i+3);
-                        i += 3;
-                    }
-                }
-            }
-            res.append(context.charAt(i));
-        }
-
-        return res.toString();
-    }
-
 
     private void goodbye() throws IOException {
         output.writeUTF("$bye");
@@ -245,6 +146,11 @@ public class Client {
             println("socket and stream can not be closed, now force quit!");
             exit(1);
         }
+    }
+
+
+    public static void println(String thing) {
+        System.out.println(thing);
     }
 
 }

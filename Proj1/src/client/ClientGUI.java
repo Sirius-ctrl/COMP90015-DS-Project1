@@ -17,6 +17,9 @@ public class ClientGUI {
     private JEditorPane output;
     private JCheckBox beautify;
     private JCheckBox fixedFormat;
+    private JButton displayWidth;
+
+    private static int dpWidth = 100;
 
     private static Client client = Client.getClient();
     private static ClientGUI gui;
@@ -119,6 +122,22 @@ public class ClientGUI {
             }
         });
 
+
+        displayWidth.addActionListener(e -> {
+            String userInput = JOptionPane.showInputDialog("Enter the width that suit you well, " +
+                    "the setting will take effect on next search");
+
+            for (int i = 0; i < userInput.length(); i++) {
+                if (!Character.isDigit(userInput.charAt(i))){
+                    JOptionPane.showMessageDialog(null, "please only give digits");
+                    return;
+                }
+            }
+
+            dpWidth = Integer.parseInt(userInput);
+            JOptionPane.showMessageDialog(null, "Success");
+        });
+
         buildGUI();
     }
 
@@ -128,7 +147,7 @@ public class ClientGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        frame.setSize(1000,600);
+        frame.setSize(800,600);
     }
 
     public static ClientGUI getGUI() {
@@ -141,6 +160,10 @@ public class ClientGUI {
 
     public void setOutput(String text) {
         output.setText(text);
+    }
+
+    public int getWidth() {
+        return dpWidth;
     }
 
 }
