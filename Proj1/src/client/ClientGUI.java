@@ -134,7 +134,8 @@ public class ClientGUI {
                 }
             }
 
-            dpWidth = Integer.parseInt(userInput);
+            // restrict the max length of dpWidth no longer than the maximum
+            dpWidth = Integer.parseInt(userInput) < output.getWidth()?Integer.parseInt(userInput):output.getWidth();
             JOptionPane.showMessageDialog(null, "Success");
         });
 
