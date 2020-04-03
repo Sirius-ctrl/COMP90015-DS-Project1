@@ -3,6 +3,8 @@ package client;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import client.Client;
 
@@ -14,7 +16,7 @@ public class ClientGUI {
     private JTextField input;
     private JEditorPane output;
     private JCheckBox beautify;
-    private JCheckBox fixUploadFormat;
+    private JCheckBox fixedFormat;
 
     private static Client client = Client.getClient();
     private static ClientGUI gui;
@@ -23,8 +25,6 @@ public class ClientGUI {
 
         searchButton.addActionListener(e -> {
             String userInput = input.getText();
-
-            System.out.println(userInput.length());
 
             if (userInput.length() == 0) {
                 output.setText("Please enter a search word!");
@@ -107,6 +107,16 @@ public class ClientGUI {
 
             //todo : connect to client and delete the word
             //output.setText(client.delete(userInput));
+        });
+
+        // default enter action is to search the word
+        input.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+                    searchButton.doClick();
+                }
+            }
         });
 
         buildGUI();

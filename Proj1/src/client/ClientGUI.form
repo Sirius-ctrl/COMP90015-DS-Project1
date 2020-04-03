@@ -89,13 +89,13 @@
           <text value="Beautify Result"/>
         </properties>
       </component>
-      <component id="84c98" class="javax.swing.JCheckBox" binding="fixUploadFormat">
+      <component id="84c98" class="javax.swing.JCheckBox" binding="fixedFormat">
         <constraints>
           <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <selected value="true"/>
-          <text value="Fix Upload Format"/>
+          <text value="Fixed Format"/>
         </properties>
       </component>
     </children>
