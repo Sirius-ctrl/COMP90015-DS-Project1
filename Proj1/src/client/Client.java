@@ -7,7 +7,6 @@ import java.io.*;
 import java.net.Socket;
 
 import static java.lang.System.exit;
-import static java.lang.System.out;
 
 public class Client {
 
@@ -202,6 +201,7 @@ public class Client {
     public void closeAll() {
 
         try {
+
             if (socket != null && socket.isConnected()) {
                 // tell sever the client close the application to free the sever resources
                 output.writeUTF("$bye");

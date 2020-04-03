@@ -14,6 +14,8 @@ import com.beust.jcommander.JCommander;
 
 import com.beust.jcommander.Parameter;
 
+import static java.lang.System.exit;
+
 public class Server {
 	// parameters variable
 	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
@@ -23,26 +25,33 @@ public class Server {
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
 
+
+	private static ServerSocket server;
+	private static ThreadPool pool;
+
     public static void main(String...args) {
 		// parse the command line arguments
+		// todo : regulate input
 		JCommander.newBuilder().addObject(new Server()).build().parse(args);
 
 	    println("Listening on " + port + " using " + dict_path);
 
-		ThreadPool pool = new ThreadPool(workers);
+		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
+
+		pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		Dictionary my_dict = new Dictionary(dict_path);
 
 		try {
-			ServerSocket server = factory.createServerSocket(port);
+			server = factory.createServerSocket(port);
 			println("server init successfully, now waiting for connection");
 
 			while (true) {
 				Socket client = server.accept();
 				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);
-				System.out.println("==== New Connection Established ====");
+				System.out.println("==== New Request Received ====");
 			}
 
 		} catch (IOException e){
@@ -57,7 +66,13 @@ public class Server {
     	System.out.println(thing);
 	}
 
-	public static void closeAll(){
-    	// todo : finish this
+	public static void closeAll() {
+
+		try {
+			server.close();
+			println("cleaned up");
+		} catch (IOException e) {
+			println("closing error, now force quit!");
+		}
 	}
 }
