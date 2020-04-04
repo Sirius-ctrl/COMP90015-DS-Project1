@@ -81,9 +81,11 @@ public class Client {
 
                 println("==== search query succeed ====");
                 if (beautify) {
-                    return resHeader + bu.beautifySearch(subContext.getString("meaning"));
+                    return resHeader + bu.beautifySearch(subContext.getString("meaning")) + "\n"
+                            + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
                 } else {
-                    return resHeader + bu.beautifySearch(subContext.getString("meaning"), true);
+                    return resHeader + bu.beautifySearch(subContext.getString("meaning"), true) + "\n"
+                            + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
                 }
             } else {
                 println("==== search query failed ====");
