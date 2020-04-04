@@ -48,7 +48,8 @@ public class Dictionary {
         if (english_dict.has(word)){
             return new Feedback(FeedbackType.SUCCESS, english_dict.getString(word));
         } else {
-            return new Feedback(FeedbackType.ERROR,"Word does not exist in the dictionary, please check the spell");
+            return new Feedback(FeedbackType.ERROR,"Word does not exist in the dictionary, " +
+                    "please check the spell or add a meaning for the word!");
         }
 
     }

@@ -11,6 +11,18 @@ public class Beautifier {
         return beautifier;
     }
 
+    public String cleanFormat(String context) {
+        StringBuilder res = new StringBuilder();
+
+        for (int i = 0; i < context.length(); i++) {
+            if(!(context.charAt(i) == ' ') && !(context.charAt(i) == '\n')) {
+                res.append(context.charAt(i));
+            }
+        }
+
+        return res.toString();
+    }
+
     public String beautifySearch(String context, boolean fitWidthOnly) {
         if (fitWidthOnly) {
             return fitWidth(context);
@@ -148,4 +160,5 @@ public class Beautifier {
 
         return res.toString();
     }
+
 }

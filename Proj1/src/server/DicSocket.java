@@ -69,7 +69,8 @@ public class DicSocket implements Runnable {
             if (query.has("meaning")) {
                 sendLine = myDict.add(query.getString("add"), query.getString("meaning"));
             } else {
-                // todo : this should be checked at client side in order to save server resources
+                // this should be checked at client side in order to save server resources
+                // but put it there just to feel safe
                 sendLine = new Feedback(FeedbackType.ERROR, "No meaning provided");
             }
 

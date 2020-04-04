@@ -7,6 +7,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import client.Client;
+import feedback.Feedback;
+import feedback.FeedbackType;
 
 public class ClientGUI {
     private JPanel background;
@@ -18,8 +20,9 @@ public class ClientGUI {
     private JCheckBox beautify;
     private JCheckBox fixedFormat;
     private JButton displayWidth;
+    private JButton cleanOutput;
 
-    private static int dpWidth = 100;
+    private static int dpWidth = 95;
 
     private static Client client = Client.getClient();
     private static ClientGUI gui;
@@ -35,21 +38,8 @@ public class ClientGUI {
             }
 
             // trying to remove all the thing that not alpha before next step
-            for (int i = 0; i < userInput.length(); i++) {
-                if(!Character.isAlphabetic(userInput.charAt(i))) {
-                    String out = "Please enter a valid word which only contains alphabetic!\n Do you mean: ";
-                    StringBuilder correction = new StringBuilder();
-                    // try to correct the word
-                    for (int j = 0; j < userInput.length(); j++) {
-                        if(!Character.isAlphabetic(userInput.charAt(j))) {
-                            continue;
-                        }
-                        correction.append(userInput.charAt(j));
-                    }
-                    output.setText(out + correction.toString());
-                    input.setText(correction.toString());
-                    return;
-                }
+            if (userInputCorrection(userInput) == FeedbackType.ERROR){
+                return;
             }
 
             output.setText("Searching |" + userInput + "|");
@@ -71,31 +61,21 @@ public class ClientGUI {
             }
 
             // trying to remove all the thing that not alpha before next step
-            for (int i = 0; i < userInput.length(); i++) {
-                if(!Character.isAlphabetic(userInput.charAt(i))) {
-                    String out = "Please enter a valid word which only contains alphabetic!\nDo you mean: ";
-                    StringBuilder correction = new StringBuilder();
-                    // try to correct the word
-                    for (int j = 0; j < userInput.length(); j++) {
-                        if(!Character.isAlphabetic(userInput.charAt(j))) {
-                            continue;
-                        }
-                        correction.append(userInput.charAt(j));
-                    }
-
-                    output.setText(output.getText() + "\n----------------------\n" + out + correction.toString() + "?");
-                    input.setText(correction.toString());
-
-                    return;
-                }
+            if (userInputCorrection(userInput) == FeedbackType.ERROR){
+                return;
             }
 
             String meaning = output.getText();
 
-            // add "$*$" to user meaning if keep format
-            // todo : finish interaction with client
+            if (meaning.length() == 0) {
+                output.setText("Meaning could not be empty\n");
+                return;
+            }
 
-            output.setText("Added " + userInput + ":\n" + meaning);
+            // add "$*$" to user meaning if keep format
+            String feedback = client.add(userInput, meaning, fixedFormat.isSelected());
+
+            output.setText(feedback);
             input.setText("");
         });
 
@@ -108,8 +88,9 @@ public class ClientGUI {
                 return;
             }
 
-            //todo : connect to client and delete the word
-            //output.setText(client.delete(userInput));
+            output.setText("Deleting |" + userInput + "|");
+            output.setText(client.del(userInput));
+            input.setText("");
         });
 
         // default enter action is to search the word
@@ -139,23 +120,18 @@ public class ClientGUI {
             JOptionPane.showMessageDialog(null, "Success");
         });
 
-        buildGUI();
-    }
 
-    public void buildGUI() {
-        JFrame frame = new JFrame("Dictionary");
-        frame.setContentPane(this.background);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
-        frame.setSize(800,600);
+        cleanOutput.addActionListener(e -> {
+            output.setText("");
+        });
+
+        buildGUI();
     }
 
     public static ClientGUI getGUI() {
         if (gui == null) {
             gui = new ClientGUI();
         }
-
         return gui;
     }
 
@@ -165,6 +141,40 @@ public class ClientGUI {
 
     public int getWidth() {
         return dpWidth;
+    }
+
+    private void buildGUI() {
+        JFrame frame = new JFrame("Dictionary");
+        frame.setContentPane(this.background);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setSize(800,600);
+    }
+
+    private FeedbackType userInputCorrection(String userInput) {
+
+        // trying to remove all the thing that not alpha before next step
+        for (int i = 0; i < userInput.length(); i++) {
+            if(!Character.isAlphabetic(userInput.charAt(i))) {
+                String out = "Please enter a valid word which only contains alphabetic!\nDo you mean: ";
+                StringBuilder correction = new StringBuilder();
+                // try to correct the word
+                for (int j = 0; j < userInput.length(); j++) {
+                    if(!Character.isAlphabetic(userInput.charAt(j))) {
+                        continue;
+                    }
+                    correction.append(userInput.charAt(j));
+                }
+
+                output.setText(output.getText() + "\n----------------------\n" + out + correction.toString() + "?");
+                input.setText(correction.toString());
+
+                return FeedbackType.ERROR;
+            }
+        }
+
+        return FeedbackType.SUCCESS;
     }
 
 }
