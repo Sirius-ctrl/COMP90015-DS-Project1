@@ -1,10 +1,9 @@
 package client;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.HashMap;
 
 import client.Client;
 import feedback.Feedback;
@@ -72,8 +71,13 @@ public class ClientGUI {
                 return;
             }
 
-            // add "$*$" to user meaning if keep format
-            String feedback = client.add(userInput, meaning, fixedFormat.isSelected());
+            // very easy to extent if additional information is required, just key,value pair to map
+            HashMap<String, Object> parameters = new HashMap<>();
+            parameters.put("word", userInput);
+            parameters.put("meaning", meaning);
+            parameters.put("reservedFormat", fixedFormat.isSelected());
+
+            String feedback = client.add(parameters);
 
             output.setText(feedback);
             input.setText("");
@@ -93,16 +97,19 @@ public class ClientGUI {
             input.setText("");
         });
 
+        input.setFocusTraversalKeysEnabled(false);
         // default enter action is to search the word
         input.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == KeyEvent.VK_ENTER) {
                     searchButton.doClick();
+                } else if (e.getKeyChar() == KeyEvent.VK_TAB) {
+                    output.setText("");
+                    output.grabFocus();
                 }
             }
         });
-
 
         displayWidth.addActionListener(e -> {
             String userInput = JOptionPane.showInputDialog("Enter the width that suit you well, " +

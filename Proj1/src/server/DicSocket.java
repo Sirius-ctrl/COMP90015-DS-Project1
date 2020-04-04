@@ -6,6 +6,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Iterator;
 
 public class DicSocket implements Runnable {
 
@@ -35,14 +36,11 @@ public class DicSocket implements Runnable {
                     break;
                 }
 
-                // todo: might need to handle if recvLine is not a proper json string
                 JSONObject query = new JSONObject(recvLine);
 
                 System.out.println(query.toString());
 
-                // todo : I might think to remove the feedback class which is unnecessary
                 sendLine = processQuery(query);
-
 
                 output.writeUTF(sendLine);
                 output.flush();
@@ -62,16 +60,27 @@ public class DicSocket implements Runnable {
         Feedback sendLine = new Feedback(FeedbackType.ERROR, "Unknown instruction, please check again");
 
         if (query.has("search")) {
+            // search query : {search:word}
             sendLine = myDict.search(query.getString("search"));
 
         } else if (query.has("add")) {
+            // add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
+            // just put what after
 
-            if (query.has("meaning")) {
-                sendLine = myDict.add(query.getString("add"), query.getString("meaning"));
+            if (query.has("others")) {
+                // has structure {others:{meaning:the_meaning, ...extra:info}}
+                JSONObject subQuery = new JSONObject(query.getString("others"));
+
+                if (subQuery.has("meaning")) {
+                    sendLine = myDict.add(query.getString("add"), subQuery.toString());
+                } else {
+                    // this should be checked at client side in order to save server resources
+                    // but put it there just to feel safe
+                    sendLine = new Feedback(FeedbackType.ERROR, "No meaning provided");
+                }
             } else {
-                // this should be checked at client side in order to save server resources
-                // but put it there just to feel safe
-                sendLine = new Feedback(FeedbackType.ERROR, "No meaning provided");
+                // this will be handled at client side but just leave it here to be safe
+                sendLine = new Feedback(FeedbackType.ERROR, "No others provided");
             }
 
         } else if (query.has("del")) {

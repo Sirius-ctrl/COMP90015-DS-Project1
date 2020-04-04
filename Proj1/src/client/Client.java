@@ -1,10 +1,12 @@
 package client;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 
 import feedback.*;
 
@@ -50,11 +52,14 @@ public class Client {
         println(obj.toString());
 
         try {
+            // send out search query
             String resHeader = "==== " + word + " ====\n\n";
             output.writeUTF(obj.toString());
             output.flush();
 
-            JSONObject query = new JSONObject(input.readUTF());
+            // parse the server results, should like {SUCCESS:{meaning:the_meaning_of_the_word, ...extra:info}}
+            JSONObject queryResult = new JSONObject(input.readUTF());
+
 
             // query finish, disconnect with server
             Feedback goodbyeFeedback = goodbye();
@@ -64,30 +69,28 @@ public class Client {
                 println(goodbyeFeedback.getMessage());
             }
 
-            if (query.has(FeedbackType.SUCCESS.toString())) {
+            if (queryResult.has(FeedbackType.SUCCESS.toString())) {
 
-                String feedbackString = query.getString("SUCCESS");
+                JSONObject subContext = new JSONObject(queryResult.getString(FeedbackType.SUCCESS.toString()));
 
-                // reserved starting substring that means user want to keep the format
-                if (feedbackString.substring(0,3).equals("$*$")) {
-                    beautify = false;
-                    feedbackString = feedbackString.substring(3);
+                if (subContext.has("reservedFormat")) {
+                    beautify = !subContext.getBoolean("reservedFormat");
                 }
 
                 Beautifier bu = Beautifier.getBeautifier();
 
                 println("==== search query succeed ====");
                 if (beautify) {
-                    return resHeader + bu.beautifySearch(feedbackString);
+                    return resHeader + bu.beautifySearch(subContext.getString("meaning"));
                 } else {
-                    return resHeader + bu.beautifySearch(feedbackString, true);
+                    return resHeader + bu.beautifySearch(subContext.getString("meaning"), true);
                 }
             } else {
                 println("==== search query failed ====");
-                return resHeader + query.getString(FeedbackType.ERROR.toString());
+                return resHeader + queryResult.getString(FeedbackType.ERROR.toString());
             }
 
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             println(e.getMessage());
         }
 
@@ -95,14 +98,15 @@ public class Client {
     }
 
 
-    public String add(String word, String meaning, boolean format) {
-        //assume all the word and meaning reach here are valid
+    public String add(HashMap<String, Object> parameters) {
+        // add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
+        JSONObject obj = new JSONObject();
 
-        if (!format) {
-            meaning = Beautifier.getBeautifier().cleanFormat(meaning);
-        } else {
-            meaning = "$*$" + meaning;
-        }
+        obj.put("add", parameters.get("word"));
+        parameters.remove("add");
+        JSONObject others = new JSONObject(parameters);
+        obj.put("others", others.toString());
+        println(obj.toString());
 
         // connect with server and handle error if not success
         Feedback connectFeedback = connect();
@@ -112,15 +116,11 @@ public class Client {
             println(connectFeedback.getMessage());
         }
 
-        JSONObject obj = new JSONObject();
-        obj.put("add", word);
-        obj.put("meaning", meaning);
-
         try {
             output.writeUTF(obj.toString());
             output.flush();
 
-            JSONObject query = new JSONObject(input.readUTF());
+            JSONObject queryResult = new JSONObject(input.readUTF());
 
             // word addition query finish, close the connection
             Feedback goodbyeFeedback = goodbye();
@@ -131,12 +131,12 @@ public class Client {
             }
 
             // now processing the query feedback
-            if (query.has(FeedbackType.SUCCESS.toString())) {
+            if (queryResult.has(FeedbackType.SUCCESS.toString())) {
                 println("==== addition query succeed ==== ");
-                return query.getString(FeedbackType.SUCCESS.toString());
+                return queryResult.getString(FeedbackType.SUCCESS.toString());
             } else {
                 println("==== addition query failed ====");
-                return query.getString(FeedbackType.ERROR.toString());
+                return queryResult.getString(FeedbackType.ERROR.toString());
             }
 
         } catch (IOException e) {
@@ -220,10 +220,10 @@ public class Client {
             output = null;
             socket = null;
         } catch (IOException e) {
-            return new Feedback(FeedbackType.ERROR, "Cannot disconnect from server");
+            return new Feedback(FeedbackType.ERROR, "Cannot disconnect from server, restart is recommended");
         }
 
-        return new Feedback(FeedbackType.SUCCESS, "Request finish successfully");
+        return new Feedback(FeedbackType.SUCCESS, "==== goodbye ====");
     }
 
 

@@ -31,7 +31,6 @@ public class Server {
 
     public static void main(String...args) {
 		// parse the command line arguments
-		// todo : regulate input
 		JCommander.newBuilder().addObject(new Server()).build().parse(args);
 
 	    println("Listening on " + port + " using " + dict_path);
@@ -41,7 +40,7 @@ public class Server {
 		pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
-		Dictionary my_dict = new Dictionary(dict_path);
+		Dictionary my_dict = Dictionary.getDictionary(dict_path);
 
 		try {
 			server = factory.createServerSocket(port);
@@ -70,6 +69,7 @@ public class Server {
 
 		try {
 			server.close();
+			Dictionary.getDictionary().writeBack();
 			println("cleaned up");
 		} catch (IOException e) {
 			println("closing error, now force quit!");
