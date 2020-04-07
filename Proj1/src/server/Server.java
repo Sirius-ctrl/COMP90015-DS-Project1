@@ -1,5 +1,6 @@
 package server;
 
+import com.beust.jcommander.ParameterException;
 import server.ThreadPool;
 import server.SimpleTask;
 import server.DicSocket;
@@ -24,14 +25,33 @@ public class Server {
 	private static String dict_path = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
+	@Parameter(names={"--inactive, -i"}, description = "The longest time (in millisecond) we can wait for the respond before disconnected.")
+	private static int inactiveWaitingTime = 300000;
 
+	@Parameter(names = {"--help"}, help = true)
+	private static boolean help = false;
 
 	private static ServerSocket server;
 	private static ThreadPool pool;
 
     public static void main(String...args) {
 		// parse the command line arguments
-		JCommander.newBuilder().addObject(new Server()).build().parse(args);
+
+
+
+		try {
+			JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
+			commander.parse(args);
+
+			if (help) {
+				commander.usage();
+				return;
+			}
+		} catch (ParameterException e) {
+			println(e.getMessage());
+			println("Please use -h or --help for the usage");
+			return;
+		}
 
 	    println("Listening on " + port + " using " + dict_path);
 
@@ -48,6 +68,8 @@ public class Server {
 
 			while (true) {
 				Socket client = server.accept();
+				client.setSoTimeout(inactiveWaitingTime);
+
 				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);
 				System.out.println("==== New Request Received ====");
@@ -68,7 +90,8 @@ public class Server {
 	public static void closeAll() {
 
 		try {
-			server.close();
+			if (server != null) {server.close();}
+			// todo : should also shutdown what is in thread pool
 			Dictionary.getDictionary().writeBack();
 			println("cleaned up");
 		} catch (IOException e) {

@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import feedback.Feedback;
 import feedback.FeedbackType;
 
-import javax.swing.*;
+import static java.lang.System.exit;
 
 public class Dictionary {
 
@@ -48,14 +48,15 @@ public class Dictionary {
     }
 
     public void writeBack() {
-
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dict_path))) {
-            my_dict.write(writer);
-            writer.write("\n");
-            writer.flush();
-            System.out.println("Write back successfully");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (my_dict != null) {
+            try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dict_path))) {
+                my_dict.write(writer);
+                writer.write("\n");
+                writer.flush();
+                System.out.println("Write back successfully");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -65,7 +66,8 @@ public class Dictionary {
             JSONTokener token = new JSONTokener(file);
             this.my_dict = new JSONObject(token);
         } catch (FileNotFoundException e) {
-           System.out.println(e.getMessage());
+            System.out.println(e.getMessage());
+            exit(0);
         }
     }
 
