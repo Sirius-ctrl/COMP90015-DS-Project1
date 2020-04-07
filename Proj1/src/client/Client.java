@@ -46,6 +46,8 @@ public class Client {
             println(connectFeedback.getMessage());
         }
 
+        println("pass the connection test");
+
         //try to parse the result
         JSONObject obj = new JSONObject();
         obj.put("search", word);
@@ -56,7 +58,7 @@ public class Client {
             String resHeader = "==== " + word + " ====\n\n";
             output.writeUTF(obj.toString());
             output.flush();
-
+            println("not failed yet");
             // parse the server results, should like {SUCCESS:{meaning:the_meaning_of_the_word, ...extra:info}}
             JSONObject queryResult = new JSONObject(input.readUTF());
 
@@ -93,8 +95,12 @@ public class Client {
             }
 
         } catch (IOException | JSONException e) {
-            println(e.getMessage());
+            println("An error occur during searching :" + e.getMessage());
         }
+
+        socket = null;
+        input = null;
+        output = null;
 
         return "Search error, sever may failed or check your won network connection!";
     }
@@ -145,6 +151,10 @@ public class Client {
             println(e.getMessage());
         }
 
+        socket = null;
+        input = null;
+        output = null;
+
         return "Addition error, sever may failed or check your won network connection!";
     }
 
@@ -189,6 +199,10 @@ public class Client {
             println(e.getMessage());
         }
 
+        socket = null;
+        input = null;
+        output = null;
+
         return "Deletion error, sever may failed or check your won network connection!";
     }
 
@@ -197,14 +211,9 @@ public class Client {
         if ((socket != null) && (input != null) && (output != null)) {
             if (socket.isConnected()) {
 
-                try {
-                    output.writeUTF("$beat");
                     return new Feedback(FeedbackType.SUCCESS, "The connection still alive");
-                } catch (IOException e) {
-                    println("Server restart, try to rebuilt connection");
                 }
             }
-        }
 
         try {
             socket = new Socket(ip_addr, port);
@@ -214,8 +223,8 @@ public class Client {
             output = new DataOutputStream(socket.getOutputStream());
             return new Feedback(FeedbackType.SUCCESS, "connection built!");
         } catch (IOException e) {
-            return new Feedback(FeedbackType.ERROR,"Connection initiate failed! " +
-                    "The server might not be available yet!\n Please try again later or check network connection!");
+            return new Feedback(FeedbackType.ERROR,"Connection failed! " +
+                    "The server might not be available yet!\nPlease try again later or check network connection!");
         }
     }
 
