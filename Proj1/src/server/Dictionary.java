@@ -1,5 +1,6 @@
 package server;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -67,6 +68,9 @@ public class Dictionary {
             this.my_dict = new JSONObject(token);
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
+            exit(0);
+        } catch (JSONException e) {
+            System.out.println("The dictionary is not in a standard json format: " + e.getMessage());
             exit(0);
         }
     }

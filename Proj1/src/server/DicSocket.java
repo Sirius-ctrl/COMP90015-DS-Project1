@@ -34,6 +34,8 @@ public class DicSocket implements Runnable {
 
                 if (recvLine.equals("$bye")) {
                     break;
+                } else if (recvLine.equals("$beat")) {
+                    continue;
                 }
 
                 JSONObject query = new JSONObject(recvLine);

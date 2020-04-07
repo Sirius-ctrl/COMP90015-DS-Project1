@@ -61,13 +61,13 @@ public class Client {
             JSONObject queryResult = new JSONObject(input.readUTF());
 
 
-            // query finish, disconnect with server
-            Feedback goodbyeFeedback = goodbye();
-            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-                return goodbyeFeedback.getMessage();
-            } else {
-                println(goodbyeFeedback.getMessage());
-            }
+//            // query finish, disconnect with server
+//            Feedback goodbyeFeedback = goodbye();
+//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
+//                return goodbyeFeedback.getMessage();
+//            } else {
+//                println(goodbyeFeedback.getMessage());
+//            }
 
             if (queryResult.has(FeedbackType.SUCCESS.toString())) {
 
@@ -96,7 +96,7 @@ public class Client {
             println(e.getMessage());
         }
 
-        return "Search error, please try again or check network connection!";
+        return "Search error, sever may failed or check your won network connection!";
     }
 
 
@@ -124,13 +124,13 @@ public class Client {
 
             JSONObject queryResult = new JSONObject(input.readUTF());
 
-            // word addition query finish, close the connection
-            Feedback goodbyeFeedback = goodbye();
-            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-                return goodbyeFeedback.getMessage();
-            } else {
-                println(goodbyeFeedback.getMessage());
-            }
+//            // word addition query finish, close the connection
+//            Feedback goodbyeFeedback = goodbye();
+//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
+//                return goodbyeFeedback.getMessage();
+//            } else {
+//                println(goodbyeFeedback.getMessage());
+//            }
 
             // now processing the query feedback
             if (queryResult.has(FeedbackType.SUCCESS.toString())) {
@@ -145,7 +145,7 @@ public class Client {
             println(e.getMessage());
         }
 
-        return "Addition error, please try again or check network connection!";
+        return "Addition error, sever may failed or check your won network connection!";
     }
 
 
@@ -168,13 +168,13 @@ public class Client {
 
             JSONObject query = new JSONObject(input.readUTF());
 
-            // deletion finish now close the connection
-            Feedback goodbyeFeedback = goodbye();
-            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-                return goodbyeFeedback.getMessage();
-            } else {
-                println(goodbyeFeedback.getMessage());
-            }
+//            // deletion finish now close the connection
+//            Feedback goodbyeFeedback = goodbye();
+//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
+//                return goodbyeFeedback.getMessage();
+//            } else {
+//                println(goodbyeFeedback.getMessage());
+//            }
 
             // now processing the query feedback
             if (query.has(FeedbackType.SUCCESS.toString())) {
@@ -189,11 +189,23 @@ public class Client {
             println(e.getMessage());
         }
 
-        return "Deletion error, please try again or check network connection!";
+        return "Deletion error, sever may failed or check your won network connection!";
     }
 
 
     private Feedback connect() {
+        if ((socket != null) && (input != null) && (output != null)) {
+            if (socket.isConnected()) {
+
+                try {
+                    output.writeUTF("$beat");
+                    return new Feedback(FeedbackType.SUCCESS, "The connection still alive");
+                } catch (IOException e) {
+                    println("Server restart, try to rebuilt connection");
+                }
+            }
+        }
+
         try {
             socket = new Socket(ip_addr, port);
 
@@ -222,7 +234,7 @@ public class Client {
             output = null;
             socket = null;
         } catch (IOException e) {
-            return new Feedback(FeedbackType.ERROR, "Cannot disconnect from server, restart is recommended");
+            return new Feedback(FeedbackType.ERROR, "Cannot disconnect from server");
         }
 
         return new Feedback(FeedbackType.SUCCESS, "==== goodbye ====");
@@ -231,25 +243,13 @@ public class Client {
 
     public void closeAll() {
 
-        try {
-
-            if (socket != null && socket.isConnected()) {
-                // tell sever the client close the application to free the sever resources
-                output.writeUTF("$bye");
-                output.flush();
-
-                // close all
-                input.close();
-                output.close();
-                socket.close();
-
-            }
-
-            println("cleaned up");
-        } catch (IOException e) {
-            println("socket and stream can not be closed, now force quit!");
-            exit(1);
+        if (socket != null && socket.isConnected()) {
+            // tell sever the client close the application to free the sever resources
+            Feedback goodbyeFeedback = goodbye();
+            println(goodbyeFeedback.getMessage());
         }
+
+        println("cleaned up");
     }
 
 
