@@ -15,8 +15,6 @@ import com.beust.jcommander.JCommander;
 
 import com.beust.jcommander.Parameter;
 
-import static java.lang.System.exit;
-
 public class Server {
 	// parameters variable
 	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
@@ -33,11 +31,11 @@ public class Server {
 
 	private static ServerSocket server;
 	private static ThreadPool pool;
+	private static Thread autoSaver;
+	private static int saverCounter = 3;
 
     public static void main(String...args) {
 		// parse the command line arguments
-
-
 
 		try {
 			JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
@@ -56,6 +54,26 @@ public class Server {
 	    println("Listening on " + port + " using " + dict_path);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
+
+		// todo : make the time longer maybe
+		autoSaver = new Thread(() -> {
+			while(true) {
+				try {
+
+					Thread.sleep(1000);
+					saverCounter--;
+
+					if(saverCounter <= 0) {
+						println(Dictionary.getDictionary().writeBack().getMessage());
+						saverCounter = 3;
+					}
+
+				} catch (InterruptedException e) {
+					println("system print failed");
+				}
+			}
+		});
+		autoSaver.start();
 
 		pool = new ThreadPool(workers);
 
@@ -91,11 +109,12 @@ public class Server {
 
 		try {
 			if (server != null) {server.close();}
-			// todo : should also shutdown what is in thread pool
-			Dictionary.getDictionary().writeBack();
-			println("cleaned up");
+			autoSaver.interrupt();
 		} catch (IOException e) {
 			println("closing error, now force quit!");
 		}
+
+		println(Dictionary.getDictionary().writeBack().getMessage());
+		println("cleaned up");
 	}
 }

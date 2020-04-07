@@ -48,17 +48,20 @@ public class Dictionary {
         return dictionary;
     }
 
-    public void writeBack() {
+    public Feedback writeBack() {
+
         if (my_dict != null) {
             try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dict_path))) {
                 my_dict.write(writer);
                 writer.write("\n");
                 writer.flush();
-                System.out.println("Write back successfully");
+                return new Feedback(FeedbackType.SUCCESS, "==== Write back successfully ====");
             } catch (IOException e) {
-                e.printStackTrace();
+                return new Feedback(FeedbackType.ERROR, e.getMessage());
             }
         }
+
+        return new Feedback(FeedbackType.SUCCESS, "==== dict is null, nothing to write ====");
     }
 
     private void loadFile() {
