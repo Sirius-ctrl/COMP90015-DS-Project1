@@ -98,10 +98,19 @@ public class Server {
 		}
     }
 
-    public static void println(String thing) {
+
+	/**
+	 * shorter for print something
+	 * @param thing string that want to print
+	 */
+    public static void println(Object thing) {
     	System.out.println(thing);
 	}
 
+
+	/**
+	 * house-keeping function to cleanup when program terminate
+	 */
 	public static void closeAll() {
 
 		try {
