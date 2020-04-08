@@ -1,21 +1,12 @@
 package client;
 
 public class Beautifier {
-    public static Beautifier beautifier;
 
-    public static Beautifier getBeautifier() {
-        if (beautifier == null) {
-            beautifier = new Beautifier();
-        }
-
-        return beautifier;
-    }
-
-    public String cleanFormat(String context) {
+    public static String cleanFormat(String context) {
         StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < context.length(); i++) {
-            if(!(context.charAt(i) == ' ') && !(context.charAt(i) == '\n')) {
+            if(context.charAt(i) != '\n') {
                 res.append(context.charAt(i));
             }
         }
@@ -23,7 +14,7 @@ public class Beautifier {
         return res.toString();
     }
 
-    public String beautifySearch(String context, boolean fitWidthOnly) {
+    public static String beautifySearch(String context, boolean fitWidthOnly) {
         if (fitWidthOnly) {
             return fitWidth(context);
         } else {
@@ -31,7 +22,7 @@ public class Beautifier {
         }
     }
 
-    public String beautifySearch(String context) {
+    public static String beautifySearch(String context) {
         StringBuilder res = new StringBuilder();
         boolean firstSeen = true;
 
@@ -68,7 +59,7 @@ public class Beautifier {
         return fitWidth(res.toString());
     }
 
-    private String fitWidth(String context) {
+    private static String fitWidth(String context) {
         StringBuilder res = new StringBuilder();
         int i = 0;
         int acc = 0;
@@ -106,7 +97,7 @@ public class Beautifier {
         return res.toString();
     }
 
-    public int chopNotTermSection(String context, int start) {
+    private static int chopNotTermSection(String context, int start) {
         int end;
         //find the next \n
 
@@ -127,7 +118,7 @@ public class Beautifier {
     }
 
 
-    private int chopTermSection(String context, int start) {
+    private static int chopTermSection(String context, int start) {
         int end;
         // find the position of next proper "-"
         for (end = start+1; end < context.length(); end++) {
@@ -141,7 +132,7 @@ public class Beautifier {
         return end;
     }
 
-    private String indentationCorrecter (String context, String indentation) {
+    private static String indentationCorrecter (String context, String indentation) {
         StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < context.length(); i++) {

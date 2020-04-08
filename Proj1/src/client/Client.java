@@ -7,7 +7,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
-import feedback.*;
+import utils.*;
 
 public class Client {
 
@@ -55,7 +55,7 @@ public class Client {
 
         //make query
         JSONObject obj = new JSONObject();
-        obj.put("search", word);
+        obj.put(Actions.SEARCH.toString(), word);
         println("query send: " + obj.toString());
 
         try {
@@ -71,18 +71,16 @@ public class Client {
 
                 JSONObject subContext = new JSONObject(queryResult.getString(FeedbackType.SUCCESS.toString()));
 
-                if (subContext.has("reservedFormat")) {
-                    beautify = !subContext.getBoolean("reservedFormat");
+                if (subContext.has("reservedFormat") && subContext.getBoolean("reservedFormat")) {
+                    beautify = false;
                 }
-
-                Beautifier bu = Beautifier.getBeautifier();
 
                 println("==== search query succeed ====");
                 if (beautify) {
-                    return resHeader + bu.beautifySearch(subContext.getString("meaning")) + "\n"
+                    return resHeader + Beautifier.beautifySearch(subContext.getString("meaning")) + "\n"
                             + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
                 } else {
-                    return resHeader + bu.beautifySearch(subContext.getString("meaning"), true) + "\n"
+                    return resHeader +Beautifier.beautifySearch(subContext.getString("meaning"), true) + "\n"
                             + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
                 }
             } else {
@@ -110,10 +108,18 @@ public class Client {
     public String add(HashMap<String, Object> parameters) {
         // make add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
         JSONObject obj = new JSONObject();
-        obj.put("add", parameters.get("word"));
-        parameters.remove("add");
+        obj.put(Actions.ADD.toString(), parameters.get("word"));
+        parameters.remove("word");
         JSONObject others = new JSONObject(parameters);
+
+
+        if(!others.getBoolean("reservedFormat")) {
+            println("cleaning format");
+            others.put("meaning", Beautifier.cleanFormat(others.getString("meaning")));
+        }
+
         obj.put("others", others.toString());
+
         println("add query: " + obj.toString());
 
         // connect with server and handle error if not success
@@ -166,7 +172,7 @@ public class Client {
         }
 
         JSONObject obj = new JSONObject();
-        obj.put("del", word);
+        obj.put(Actions.DEL.toString(), word);
 
         try {
             output.writeUTF(obj.toString());
@@ -230,8 +236,7 @@ public class Client {
     private Feedback connect() {
         if ((socket != null) && (input != null) && (output != null)) {
             if (socket.isConnected()) {
-
-                return new Feedback(FeedbackType.SUCCESS, "The connection still alive");
+                return new Feedback(FeedbackType.SUCCESS, "==== connected ====");
             }
         }
 

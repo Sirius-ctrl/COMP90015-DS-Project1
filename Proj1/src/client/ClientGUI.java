@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.HashMap;
 
-import feedback.FeedbackType;
+import utils.FeedbackType;
 
 public class ClientGUI {
     private JPanel background;

@@ -1,12 +1,13 @@
 package server;
 
-import feedback.Feedback;
-import feedback.FeedbackType;
+import utils.Actions;
+import utils.Feedback;
+import utils.FeedbackType;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
-import java.util.Iterator;
 
 public class DicSocket implements Runnable {
 
@@ -59,11 +60,11 @@ public class DicSocket implements Runnable {
     private String processQuery(JSONObject query) {
         Feedback sendLine = new Feedback(FeedbackType.ERROR, "Unknown instruction, please check again");
 
-        if (query.has("search")) {
+        if (query.has(Actions.SEARCH.toString())) {
             // search query : {search:word}
-            sendLine = myDict.search(query.getString("search"));
+            sendLine = myDict.search(query.getString(Actions.SEARCH.toString()));
 
-        } else if (query.has("add")) {
+        } else if (query.has(Actions.ADD.toString())) {
             // add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
             // just put what after
 
@@ -72,7 +73,7 @@ public class DicSocket implements Runnable {
                 JSONObject subQuery = new JSONObject(query.getString("others"));
 
                 if (subQuery.has("meaning")) {
-                    sendLine = myDict.add(query.getString("add"), subQuery.toString());
+                    sendLine = myDict.modify(query.getString(Actions.ADD.toString()), subQuery.toString(), Actions.ADD);
                 } else {
                     // this should be checked at client side in order to save server resources
                     // but put it there just to feel safe
@@ -80,11 +81,11 @@ public class DicSocket implements Runnable {
                 }
             } else {
                 // this will be handled at client side but just leave it here to be safe
-                sendLine = new Feedback(FeedbackType.ERROR, "No others provided");
+                sendLine = new Feedback(FeedbackType.ERROR, "No meta-data for the word (namely 'others' section) provided");
             }
 
-        } else if (query.has("del")) {
-            sendLine = myDict.delete(query.getString("del"));
+        } else if (query.has(Actions.DEL.toString())) {
+            sendLine = myDict.modify(query.getString(Actions.DEL.toString()), null, Actions.DEL);
         }
 
         return sendLine.toJsonString();

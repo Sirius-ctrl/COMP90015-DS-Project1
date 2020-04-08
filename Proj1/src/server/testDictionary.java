@@ -1,9 +1,6 @@
 package server;
 
-import feedback.Feedback;
-import feedback.FeedbackType;
 import org.json.JSONTokener;
-import server.Dictionary;
 import org.json.JSONObject;
 
 import java.io.*;

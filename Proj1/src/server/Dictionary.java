@@ -11,8 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import feedback.Feedback;
-import feedback.FeedbackType;
+import utils.Actions;
+import utils.Feedback;
+import utils.FeedbackType;
 
 import static java.lang.System.exit;
 
@@ -48,7 +49,11 @@ public class Dictionary {
         return dictionary;
     }
 
-    public Feedback writeBack() {
+    /**
+     * write the edited dictionary back to the disk to preserve the changes
+     * @return Feedback class contains whether it success or error sign and messages
+     */
+    public synchronized Feedback writeBack() {
 
         if (my_dict != null) {
             try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dict_path))) {
@@ -78,8 +83,12 @@ public class Dictionary {
         }
     }
 
-    // find a meaning of a word from dictionary, return either
-    // the meaning string or error message (word not found)
+
+    /**
+     * find a meaning of a word from dictionary
+     * @param word the word you want to search
+     * @return Feedback class contains either success with meaning or error with reason
+     */
     public Feedback search(String word) {
 
         if (my_dict.has(word)){
@@ -91,11 +100,29 @@ public class Dictionary {
 
     }
 
-    // add a word to dictionary with meaning while return String could be
-    // either success or error message (word already exist)
-    // note that info could contains information not only meaning but also
-    // other useful information for clients
-    public synchronized Feedback add(String word, String info){
+
+    public synchronized Feedback modify(String word, String info, Actions mode) {
+
+        switch (mode) {
+            case ADD:
+                return add(word, info);
+            case DEL:
+                return delete(word);
+            default:
+                return new Feedback(FeedbackType.ERROR, "unknown mode");
+        }
+    }
+
+
+    /**
+     * add a word to dictionary with meaning and other extra information in a
+     * json format string, note that the function is synchronized which only
+     * on thread can add
+     * @param word word you want to add to the dictionary
+     * @param info meta-data about the word
+     * @return  Feedback class contains either success or error with reason
+     */
+    private Feedback add(String word, String info){
 
         if (my_dict.has(word)) {
             return new Feedback(FeedbackType.ERROR, "Word already exist");
@@ -107,7 +134,7 @@ public class Dictionary {
 
     // delete an word from the dictionary and remember to delete from disk
     // return either success or error message (word does not exist)
-    public synchronized Feedback delete(String word) {
+    private Feedback delete(String word) {
 
         if (my_dict.has(word)) {
             my_dict.remove(word);

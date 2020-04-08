@@ -9,7 +9,7 @@ public class Main {
     public static void main(String ... args) {
 
         try {
-            JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
+            JCommander commander = JCommander.newBuilder().addObject(new Client()).build();
             commander.parse(args);
 
 
