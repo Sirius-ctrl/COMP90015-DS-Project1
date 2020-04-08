@@ -10,8 +10,6 @@ import java.util.HashMap;
 
 import feedback.*;
 
-import static java.lang.System.*;
-
 public class Client {
 
     // parameters variable
@@ -35,6 +33,12 @@ public class Client {
         return client;
     }
 
+    /**
+     * Search word in server dictionary
+     * @param word The word this will be query
+     * @param beautify whether you want the result to be beautify
+     * @return the result string, if success then return the meaning, otherwise return the error message
+     */
     public String search(String word, boolean beautify) {
 
         Feedback connectFeedback = connect();
@@ -48,28 +52,19 @@ public class Client {
 
         println("pass the connection test");
 
-        //try to parse the result
+        //make query
         JSONObject obj = new JSONObject();
         obj.put("search", word);
-        println(obj.toString());
+        println("query send: " + obj.toString());
 
         try {
             // send out search query
             String resHeader = "==== " + word + " ====\n\n";
             output.writeUTF(obj.toString());
             output.flush();
-            println("not failed yet");
+
             // parse the server results, should like {SUCCESS:{meaning:the_meaning_of_the_word, ...extra:info}}
             JSONObject queryResult = new JSONObject(input.readUTF());
-
-
-//            // query finish, disconnect with server
-//            Feedback goodbyeFeedback = goodbye();
-//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-//                return goodbyeFeedback.getMessage();
-//            } else {
-//                println(goodbyeFeedback.getMessage());
-//            }
 
             if (queryResult.has(FeedbackType.SUCCESS.toString())) {
 
@@ -95,26 +90,30 @@ public class Client {
             }
 
         } catch (IOException | JSONException e) {
-            println("An error occur during searching :" + e.getMessage());
+            println("An error occur during searching: " + e.getMessage());
         }
 
         socket = null;
         input = null;
         output = null;
 
-        return "Search error, sever may failed or check your won network connection!";
+        return "Search error, sever may failed or check your network connection!";
     }
 
 
+    /**
+     * Add a new word to server dictionary
+     * @param parameters all the key,value pairs in add query
+     * @return the result string, either success or error messages
+     */
     public String add(HashMap<String, Object> parameters) {
-        // add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
+        // make add query {add:word, others:{meaning:the_meaning_of_word,...extra:info}}
         JSONObject obj = new JSONObject();
-
         obj.put("add", parameters.get("word"));
         parameters.remove("add");
         JSONObject others = new JSONObject(parameters);
         obj.put("others", others.toString());
-        println(obj.toString());
+        println("add query: " + obj.toString());
 
         // connect with server and handle error if not success
         Feedback connectFeedback = connect();
@@ -130,14 +129,6 @@ public class Client {
 
             JSONObject queryResult = new JSONObject(input.readUTF());
 
-//            // word addition query finish, close the connection
-//            Feedback goodbyeFeedback = goodbye();
-//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-//                return goodbyeFeedback.getMessage();
-//            } else {
-//                println(goodbyeFeedback.getMessage());
-//            }
-
             // now processing the query feedback
             if (queryResult.has(FeedbackType.SUCCESS.toString())) {
                 println("==== addition query succeed ==== ");
@@ -147,18 +138,22 @@ public class Client {
                 return queryResult.getString(FeedbackType.ERROR.toString());
             }
 
-        } catch (IOException e) {
-            println(e.getMessage());
+        } catch (IOException | JSONException e) {
+            println("An error occur during adding: " + e.getMessage());
         }
 
         socket = null;
         input = null;
         output = null;
 
-        return "Addition error, sever may failed or check your won network connection!";
+        return "Addition error, sever may failed or check your network connection!";
     }
 
-
+    /**
+     * delete a word from the server dictionary
+     * @param word the word you want to delete from the server dictionary
+     * @return either success message or error message
+     */
     public String del(String word) {
 
         // connect with server and handle error if not success
@@ -178,14 +173,6 @@ public class Client {
 
             JSONObject query = new JSONObject(input.readUTF());
 
-//            // deletion finish now close the connection
-//            Feedback goodbyeFeedback = goodbye();
-//            if (goodbyeFeedback.getFeedbackType() == FeedbackType.ERROR) {
-//                return goodbyeFeedback.getMessage();
-//            } else {
-//                println(goodbyeFeedback.getMessage());
-//            }
-
             // now processing the query feedback
             if (query.has(FeedbackType.SUCCESS.toString())) {
                 println("==== deletion query succeed ==== ");
@@ -196,14 +183,14 @@ public class Client {
             }
 
         } catch (IOException e ) {
-            println(e.getMessage());
+            println("An error occur during deleting: " + e.getMessage());
         }
 
         socket = null;
         input = null;
         output = null;
 
-        return "Deletion error, sever may failed or check your won network connection!";
+        return "Deletion error, sever may failed or check your network connection!";
     }
 
 
@@ -223,6 +210,7 @@ public class Client {
             output = new DataOutputStream(socket.getOutputStream());
             return new Feedback(FeedbackType.SUCCESS, "connection built!");
         } catch (IOException e) {
+            println(e.getMessage());
             return new Feedback(FeedbackType.ERROR,"Connection failed! " +
                     "The server might not be available yet!\nPlease try again later or check network connection!");
         }
@@ -257,7 +245,6 @@ public class Client {
             Feedback goodbyeFeedback = goodbye();
             println(goodbyeFeedback.getMessage());
         }
-
         println("cleaned up");
     }
 

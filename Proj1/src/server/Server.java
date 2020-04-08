@@ -23,16 +23,17 @@ public class Server {
 	private static String dict_path = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
-	@Parameter(names={"--inactive, -i"}, description = "The longest time (in millisecond) we can wait for the respond before disconnected.")
-	private static int inactiveWaitingTime = 300000;
-
+	@Parameter(names={"--inactive, -i"}, description = "The longest time (sec) we can wait for the respond before disconnected.")
+	private static int inactiveWaitingTime = 300;
+	@Parameter(names={"--autosave, -a"}, description = "The longest time to auto backup dictionary data")
+	private static int autoSaveTime = 600;
 	@Parameter(names = {"--help"}, help = true)
 	private static boolean help = false;
 
 	private static ServerSocket server;
 	private static ThreadPool pool;
 	private static Thread autoSaver;
-	private static int saverCounter = 3;
+	private static int saverCounter;
 
     public static void main(String...args) {
 		// parse the command line arguments
@@ -51,11 +52,13 @@ public class Server {
 			return;
 		}
 
+		saverCounter = autoSaveTime;
+
 	    println("Listening on " + port + " using " + dict_path);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
-		// todo : make the time longer maybe
+		// create a thread to auto backup the server every X minutes  (10 minutes by default)
 		autoSaver = new Thread(() -> {
 			while(true) {
 				try {
@@ -65,7 +68,7 @@ public class Server {
 
 					if(saverCounter <= 0) {
 						println(Dictionary.getDictionary().writeBack().getMessage());
-						saverCounter = 3;
+						saverCounter = autoSaveTime;
 					}
 
 				} catch (InterruptedException e) {
@@ -86,7 +89,7 @@ public class Server {
 
 			while (true) {
 				Socket client = server.accept();
-				client.setSoTimeout(inactiveWaitingTime);
+				client.setSoTimeout(inactiveWaitingTime*1000);
 
 				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);

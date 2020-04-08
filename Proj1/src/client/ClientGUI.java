@@ -21,7 +21,7 @@ public class ClientGUI {
     private JButton displayWidth;
     private JButton cleanOutput;
 
-    private static int dpWidth = 95;
+    private static int dpWidth = 90;
 
     private static Client client = Client.getClient();
     private static ClientGUI gui;
@@ -135,6 +135,10 @@ public class ClientGUI {
         buildGUI();
     }
 
+    /**
+     * return a gui instance
+     * @return the gui instance
+     */
     public static ClientGUI getGUI() {
         if (gui == null) {
             gui = new ClientGUI();
@@ -142,14 +146,19 @@ public class ClientGUI {
         return gui;
     }
 
-    public void setOutput(String text) {
-        output.setText(text);
-    }
+    /**
+     * Set the user output panel with some text
+     * @param text text will be set
+     */
+    public void setOutput(String text) { output.setText(text); }
 
-    public int getWidth() {
-        return dpWidth;
-    }
+    /**
+     * get current display width restriction
+     * @return current width size
+     */
+    public int getWidth() { return dpWidth; }
 
+    
     private void buildGUI() {
         JFrame frame = new JFrame("Dictionary");
         frame.setContentPane(this.background);
@@ -159,8 +168,8 @@ public class ClientGUI {
         frame.setSize(800,600);
     }
 
-    private FeedbackType userInputCorrection(String userInput) {
 
+    private FeedbackType userInputCorrection(String userInput) {
         // trying to remove all the thing that not alpha before next step
         for (int i = 0; i < userInput.length(); i++) {
             if(!Character.isAlphabetic(userInput.charAt(i))) {
