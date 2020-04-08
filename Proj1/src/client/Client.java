@@ -1,5 +1,4 @@
 package client;
-import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,9 +13,11 @@ public class Client {
 
     // parameters variable
     @Parameter(names={"--port", "-p"}, description = "Port number to connect server")
-    public static int port = 3456;
+    private static int port = 3456;
     @Parameter(names={"--addr", "-a"}, description = "IP address to server")
-    public static String ip_addr = "127.0.0.1";
+    private static String ip_addr = "127.0.0.1";
+    @Parameter(names={"--help", "-h"}, help = true)
+    private static boolean help = false;
 
     private static Socket socket;
     private static DataInputStream input;
@@ -194,13 +195,45 @@ public class Client {
     }
 
 
+    /**
+     * house-keeping function to cleanup when program terminate
+     */
+    public void closeAll() {
+
+        if (socket != null && socket.isConnected()) {
+            // tell sever the client close the application to free the sever resources
+            Feedback goodbyeFeedback = goodbye();
+            println(goodbyeFeedback.getMessage());
+        }
+        println("cleaned up");
+    }
+
+    /**
+     * shorter for print something
+     * @param thing string that want to print
+     */
+    public static void println(Object thing) { System.out.println(thing); }
+
+
+    /**
+     * whether -h/--help is passed to the program
+     * @return true if we want to display the help, otherwise false
+     */
+    public static boolean isHelp() { return help; }
+
+    public static String getIp_addr() { return ip_addr; }
+
+    public static int getPort() { return port; }
+
+
+
     private Feedback connect() {
         if ((socket != null) && (input != null) && (output != null)) {
             if (socket.isConnected()) {
 
-                    return new Feedback(FeedbackType.SUCCESS, "The connection still alive");
-                }
+                return new Feedback(FeedbackType.SUCCESS, "The connection still alive");
             }
+        }
 
         try {
             socket = new Socket(ip_addr, port);
@@ -235,22 +268,6 @@ public class Client {
         }
 
         return new Feedback(FeedbackType.SUCCESS, "==== goodbye ====");
-    }
-
-
-    public void closeAll() {
-
-        if (socket != null && socket.isConnected()) {
-            // tell sever the client close the application to free the sever resources
-            Feedback goodbyeFeedback = goodbye();
-            println(goodbyeFeedback.getMessage());
-        }
-        println("cleaned up");
-    }
-
-
-    public static void println(String thing) {
-        System.out.println(thing);
     }
 
 }

@@ -1,12 +1,9 @@
 package client;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 
-import client.Client;
-import feedback.Feedback;
 import feedback.FeedbackType;
 
 public class ClientGUI {
@@ -158,7 +155,7 @@ public class ClientGUI {
      */
     public int getWidth() { return dpWidth; }
 
-    
+
     private void buildGUI() {
         JFrame frame = new JFrame("Dictionary");
         frame.setContentPane(this.background);

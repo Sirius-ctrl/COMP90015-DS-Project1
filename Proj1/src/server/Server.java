@@ -1,10 +1,6 @@
 package server;
 
 import com.beust.jcommander.ParameterException;
-import server.ThreadPool;
-import server.SimpleTask;
-import server.DicSocket;
-
 
 import javax.net.ServerSocketFactory;
 import java.io.IOException;
@@ -27,17 +23,17 @@ public class Server {
 	private static int inactiveWaitingTime = 300;
 	@Parameter(names={"--autosave, -a"}, description = "The longest time to auto backup dictionary data")
 	private static int autoSaveTime = 600;
-	@Parameter(names = {"--help"}, help = true)
+	@Parameter(names = {"-h","--help"}, help = true)
 	private static boolean help = false;
 
-	private static ServerSocket server;
+
+	private static ServerSocket serverSocket;
 	private static ThreadPool pool;
 	private static Thread autoSaver;
 	private static int saverCounter;
 
     public static void main(String...args) {
 		// parse the command line arguments
-
 		try {
 			JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
 			commander.parse(args);
@@ -84,11 +80,11 @@ public class Server {
 		Dictionary my_dict = Dictionary.getDictionary(dict_path);
 
 		try {
-			server = factory.createServerSocket(port);
+			serverSocket = factory.createServerSocket(port);
 			println("server init successfully, now waiting for connection");
 
 			while (true) {
-				Socket client = server.accept();
+				Socket client = serverSocket.accept();
 				client.setSoTimeout(inactiveWaitingTime*1000);
 
 				Runnable connection = new DicSocket(client, my_dict);
@@ -100,8 +96,6 @@ public class Server {
 			println("Error occur when creating server sockets");
 			println(e.getMessage());
 		}
-
-
     }
 
     public static void println(String thing) {
@@ -111,7 +105,7 @@ public class Server {
 	public static void closeAll() {
 
 		try {
-			if (server != null) {server.close();}
+			if (serverSocket != null) {serverSocket.close();}
 			autoSaver.interrupt();
 		} catch (IOException e) {
 			println("closing error, now force quit!");

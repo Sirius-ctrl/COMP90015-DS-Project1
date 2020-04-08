@@ -1,15 +1,31 @@
 package client;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import server.Server;
 
 public class Main {
 
     public static void main(String ... args) {
-        String output;
-        JCommander.newBuilder().addObject(new Client()).build().parse(args);
-        Client client = Client.getClient();
-        System.out.println("client connecting " + Client.ip_addr + ":" + Client.port);
 
+        try {
+            JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
+            commander.parse(args);
+
+
+            if (Client.isHelp()) {
+                commander.usage();
+                return;
+            }
+        } catch (ParameterException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Please use -h or --help for the usage");
+            return;
+        }
+
+        System.out.println("client connecting " + Client.getIp_addr() + ":" + Client.getPort());
+
+        Client client = Client.getClient();
         // clean up when the application is closed
         Runtime.getRuntime().addShutdownHook(new Thread(client::closeAll));
 
