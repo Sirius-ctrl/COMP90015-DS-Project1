@@ -23,6 +23,7 @@ public class Dictionary {
     public static Dictionary dictionary;
     public String dict_path;
     private JSONObject my_dict;
+    private static int suggestions;
     private HashMap<String, ArrayList<String>> symSpell = new HashMap<>();
 
     // if the path is not provided we can use the default one
@@ -31,8 +32,9 @@ public class Dictionary {
         loadFile();
     }
 
-    public Dictionary (String dict_path) {
+    public Dictionary (String dict_path, int suggestion) {
         this.dict_path = dict_path;
+        this.suggestions = suggestion;
         loadFile();
     }
 
@@ -44,9 +46,9 @@ public class Dictionary {
         return dictionary;
     }
 
-    public static Dictionary getDictionary(String dict_path) {
+    public static Dictionary getDictionary(String dict_path, int suggestion) {
         if(dictionary == null) {
-            dictionary = new Dictionary(dict_path);
+            dictionary = new Dictionary(dict_path, suggestion);
         }
         return dictionary;
     }
@@ -84,14 +86,16 @@ public class Dictionary {
             exit(0);
         }
 
-        // generate Symmetric Delete Spelling for quick word auto-correction
-        for (Iterator<String> it = my_dict.keys(); it.hasNext(); ) {
-            String word = it.next();
-            HashSet<String> dSet;
+        if (suggestions != 0) {
+            // generate Symmetric Delete Spelling for quick word auto-correction
+            for (Iterator<String> it = my_dict.keys(); it.hasNext(); ) {
+                String word = it.next();
+                HashSet<String> dSet;
 
-            // only consider edit distance = 1 for now, can be extended if necessary
-            dSet = generateDelete(word, 1);
-            updateSysSpell(word, dSet);
+                // only consider edit distance = 1 for now, can be extended if necessary
+                dSet = generateDelete(word, 1);
+                updateSysSpell(word, dSet);
+            }
         }
     }
 
@@ -139,9 +143,11 @@ public class Dictionary {
             StringBuilder res = new StringBuilder();
             res.append("Word does not exist in the dictionary, " +
                     "please check the spell or add a meaning for the word!\n\n");
-            res.append("------------- Suggestions -------------\n");
 
-            res.append(fuzzySearch(word));
+            if (suggestions != 0) {
+                res.append("------------- Suggestions -------------\n");
+                res.append(fuzzySearch(word));
+            }
 
             return new Feedback(FeedbackType.ERROR, res.toString());
         }
@@ -150,38 +156,65 @@ public class Dictionary {
 
     private String fuzzySearch(String word) {
         StringBuilder res = new StringBuilder();
+        HashSet<String> candidtes = new HashSet<>();
 
         if (symSpell.containsKey(word)) {
             ArrayList<String> fuzzyMatch = symSpell.get(word);
 
-            for (String w:fuzzyMatch) {
-                res.append(w).append(", ");
-            }
+            candidtes.addAll(fuzzyMatch);
         }
 
         HashSet<String> dSet;
 
         dSet = generateDelete(word, 1);
 
-        buildFuzzy(dSet, res);
+        buildFuzzy(dSet, candidtes);
 
-        if (res.length() != 0) {
+        if (candidtes.size() != 0) {
+            ArrayList<String> prioritySelection = new ArrayList<>();
+
+            for (Iterator<String> it = candidtes.iterator(); it.hasNext(); ) {
+                String s = it.next();
+
+                if (s.length() == word.length()) {
+                    prioritySelection.add(s);
+                    it.remove();
+                }
+            }
+
+            if (prioritySelection.size() >= suggestions) {
+                res.append(prioritySelection.get(0));
+                for (int i = 1; i < suggestions; i++) {
+                    res.append(", ").append(prioritySelection.get(i));
+                }
+            } else {
+                res.append(prioritySelection.get(0));
+                for (int i = 1; i < prioritySelection.size(); i++) {
+                    res.append(", ").append(prioritySelection.get(i));
+                }
+
+                Iterator<String> rest = candidtes.iterator();
+
+                for (int i = prioritySelection.size(); (i < suggestions) && rest.hasNext(); i++) {
+                    String s = rest.next();
+                    res.append(", ").append(s);
+                }
+            }
+
             return res.toString();
         }
 
         return "No suggestion found!";
     }
 
-    private void buildFuzzy(HashSet<String> dSet, StringBuilder res) {
+    private void buildFuzzy(HashSet<String> dSet, HashSet<String> candidates) {
         for (String dWord:dSet) {
             if (my_dict.has(dWord)) {
-                res.append(dWord).append(", ");
+                candidates.add(dWord);
             }
 
             if(symSpell.containsKey(dWord)) {
-                for (String w: symSpell.get(dWord)) {
-                    res.append(w).append(", ");
-                }
+                candidates.addAll(symSpell.get(dWord));
             }
         }
     }

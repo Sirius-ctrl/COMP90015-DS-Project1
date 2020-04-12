@@ -18,13 +18,15 @@ public class Server {
 	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
 	private static int port = 3456;
 	@Parameter(names={"--dict", "-d"}, description = "Path to dictionary")
-	private static String dict_path = "./dictionary.json";
+	private static String dictPath = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
-	@Parameter(names={"--inactive, -i"}, description = "The longest time (sec) we can wait for the respond before disconnected.")
+	@Parameter(names={"--inactive", "-i"}, description = "The longest time (sec) we can wait for the respond before disconnected.")
 	private static int inactiveWaitingTime = 300;
-	@Parameter(names={"--autosave, -a"}, description = "The longest time to auto backup dictionary data")
+	@Parameter(names={"--autosave", "-a"}, description = "The longest time to auto backup dictionary data")
 	private static int autoSaveTime = 600;
+    @Parameter(names={"--suggestions", "-s"}, description = "Max number of suggest for fuzzy search, set 0 to disable")
+	private static int suggestions = 8;
 	@Parameter(names = {"-h","--help"}, help = true)
 	private static boolean help = false;
 
@@ -51,7 +53,7 @@ public class Server {
 
 		saverCounter = autoSaveTime;
 
-	    log("Listening on " + port + " using " + dict_path);
+	    log("Listening on " + port + " using " + dictPath);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
@@ -78,7 +80,7 @@ public class Server {
 		pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
-		Dictionary my_dict = Dictionary.getDictionary(dict_path);
+		Dictionary myDict = Dictionary.getDictionary(dictPath, suggestions);
 
 		try {
 			serverSocket = factory.createServerSocket(port);
@@ -88,7 +90,7 @@ public class Server {
 				Socket client = serverSocket.accept();
 				client.setSoTimeout(inactiveWaitingTime*1000);
 
-				Runnable connection = new DicSocket(client, my_dict);
+				Runnable connection = new DicSocket(client, myDict);
 				pool.exec(connection);
 				log("New Request Received");
 			}
