@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.*;
 
 import utils.Actions;
 import utils.Feedback;
@@ -22,6 +23,7 @@ public class Dictionary {
     public static Dictionary dictionary;
     public String dict_path;
     private JSONObject my_dict;
+    private HashMap<String, ArrayList<String>> symSpell = new HashMap<>();
 
     // if the path is not provided we can use the default one
     public Dictionary () {
@@ -81,6 +83,46 @@ public class Dictionary {
             System.out.println("The dictionary is not in a standard json format: " + e.getMessage());
             exit(0);
         }
+
+        // generate Symmetric Delete Spelling for quick word auto-correction
+        for (Iterator<String> it = my_dict.keys(); it.hasNext(); ) {
+            String word = it.next();
+            HashSet<String> dSet;
+
+            // only consider edit distance = 1 for now, can be extended if necessary
+            dSet = generateDelete(word, 1);
+            updateSysSpell(word, dSet);
+        }
+    }
+
+
+    private static HashSet<String> generateDelete(String word, int d) {
+        HashSet<String> res = new HashSet<>();
+
+        if (d == 0 || (word.length() == 1)) {
+            res.add(word);
+            return res;
+        }
+
+        for (int i = 0; i < word.length(); i++) {
+            String temp = word.substring(0,i) + word.substring(i+1);
+            res.add(temp);
+            res.addAll(generateDelete(temp, d-1));
+        }
+
+        return res;
+    }
+
+    private void updateSysSpell (String word, HashSet<String> dSet){
+        for (String dWord: dSet) {
+            if(symSpell.containsKey(dWord)) {
+                symSpell.get(dWord).add(word);
+            } else {
+                ArrayList<String> temp = new ArrayList<>();
+                temp.add(word);
+                symSpell.put(dWord, temp);
+            }
+        }
     }
 
 
@@ -94,13 +136,63 @@ public class Dictionary {
         if (my_dict.has(word)){
             return new Feedback(FeedbackType.SUCCESS, my_dict.getString(word));
         } else {
-            return new Feedback(FeedbackType.ERROR,"Word does not exist in the dictionary, " +
-                    "please check the spell or add a meaning for the word!");
+            StringBuilder res = new StringBuilder();
+            res.append("Word does not exist in the dictionary, " +
+                    "please check the spell or add a meaning for the word!\n\n");
+            res.append("------------- Suggestions -------------\n");
+
+            res.append(fuzzySearch(word));
+
+            return new Feedback(FeedbackType.ERROR, res.toString());
         }
 
     }
 
+    private String fuzzySearch(String word) {
+        StringBuilder res = new StringBuilder();
 
+        if (symSpell.containsKey(word)) {
+            ArrayList<String> fuzzyMatch = symSpell.get(word);
+
+            for (String w:fuzzyMatch) {
+                res.append(w).append(", ");
+            }
+        }
+
+        HashSet<String> dSet;
+
+        dSet = generateDelete(word, 1);
+
+        buildFuzzy(dSet, res);
+
+        if (res.length() != 0) {
+            return res.toString();
+        }
+
+        return "No suggestion found!";
+    }
+
+    private void buildFuzzy(HashSet<String> dSet, StringBuilder res) {
+        for (String dWord:dSet) {
+            if (my_dict.has(dWord)) {
+                res.append(dWord).append(", ");
+            }
+
+            if(symSpell.containsKey(dWord)) {
+                for (String w: symSpell.get(dWord)) {
+                    res.append(w).append(", ");
+                }
+            }
+        }
+    }
+
+    /**
+     * A universal method for processing any query that need to modify the dictionary in order to keep consistency
+     * @param word the word of any supported query
+     * @param info the info to add, which is dedicate for ADD query
+     * @param mode query mode, can be found in utils.Actions
+     * @return the feedback info contains the query success state and return message
+     */
     public synchronized Feedback modify(String word, String info, Actions mode) {
 
         switch (mode) {
