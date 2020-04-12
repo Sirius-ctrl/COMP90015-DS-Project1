@@ -21,9 +21,9 @@ public class Client {
     @Parameter(names={"--help", "-h"}, help = true)
     private static boolean help = false;
 
-    private static Socket socket;
-    private static DataInputStream input;
-    private static DataOutputStream output;
+    private Socket socket;
+    private DataInputStream input;
+    private DataOutputStream output;
 
     public static Client client;
 
