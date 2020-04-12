@@ -9,6 +9,8 @@ import java.util.HashMap;
 
 import utils.*;
 
+import static utils.Logging.*;
+
 public class Client {
 
     // parameters variable
@@ -44,19 +46,16 @@ public class Client {
 
         Feedback connectFeedback = connect();
 
+        logFeedback(connectFeedback);
         // build connection first
         if (connectFeedback.getFeedbackType() == FeedbackType.ERROR) {
             return connectFeedback.getMessage();
-        } else {
-            println(connectFeedback.getMessage());
         }
-
-        println("pass the connection test");
 
         //make query
         JSONObject obj = new JSONObject();
         obj.put(Actions.SEARCH.toString(), word);
-        println("query send: " + obj.toString());
+        log("query send: " + obj.toString());
 
         try {
             // send out search query
@@ -75,7 +74,7 @@ public class Client {
                     beautify = false;
                 }
 
-                println("==== search query succeed ====");
+                log("search query succeed");
                 if (beautify) {
                     return resHeader + Beautifier.beautifySearch(subContext.getString("meaning")) + "\n"
                             + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
@@ -84,12 +83,18 @@ public class Client {
                             + (subContext.has("extraMeaning")?subContext.getString("extraMeaning"):"");
                 }
             } else {
-                println("==== search query failed ====");
+                log("search query failed ====");
                 return resHeader + queryResult.getString(FeedbackType.ERROR.toString());
             }
 
-        } catch (IOException | JSONException e) {
-            println("An error occur during searching: " + e.getMessage());
+        } catch (JSONException e) {
+            logError("Bad Data: " + e.getMessage());
+            return "Bad Data！Search again Please!";
+        } catch (EOFException e) {
+            // no more input from the input stream means server failed
+            logError("Server down! Please Context server provider");
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
 
         socket = null;
@@ -114,20 +119,20 @@ public class Client {
 
 
         if(!others.getBoolean("reservedFormat")) {
-            println("cleaning format");
+            log("cleaning format");
             others.put("meaning", Beautifier.cleanFormat(others.getString("meaning")));
         }
 
         obj.put("others", others.toString());
 
-        println("add query: " + obj.toString());
+        log("add query: " + obj.toString());
 
         // connect with server and handle error if not success
         Feedback connectFeedback = connect();
+        logFeedback(connectFeedback);
+
         if (connectFeedback.getFeedbackType() == FeedbackType.ERROR) {
             return connectFeedback.getMessage();
-        } else {
-            println(connectFeedback.getMessage());
         }
 
         try {
@@ -138,15 +143,21 @@ public class Client {
 
             // now processing the query feedback
             if (queryResult.has(FeedbackType.SUCCESS.toString())) {
-                println("==== addition query succeed ==== ");
+                log("addition query succeed");
                 return queryResult.getString(FeedbackType.SUCCESS.toString());
             } else {
-                println("==== addition query failed ====");
+                log("addition query failed");
                 return queryResult.getString(FeedbackType.ERROR.toString());
             }
 
-        } catch (IOException | JSONException e) {
-            println("An error occur during adding: " + e.getMessage());
+        } catch (JSONException e) {
+            logError("Bad Data: " + e.getMessage());
+            return "Bad Data！Search again Please!";
+        } catch (EOFException e) {
+            // no more input from the input stream means server failed
+            logError("Server down! Please Context server provider");
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
 
         socket = null;
@@ -165,10 +176,9 @@ public class Client {
 
         // connect with server and handle error if not success
         Feedback connectFeedback = connect();
+        logFeedback(connectFeedback);
         if (connectFeedback.getFeedbackType() == FeedbackType.ERROR) {
             return connectFeedback.getMessage();
-        } else {
-            println(connectFeedback.getMessage());
         }
 
         JSONObject obj = new JSONObject();
@@ -182,15 +192,21 @@ public class Client {
 
             // now processing the query feedback
             if (query.has(FeedbackType.SUCCESS.toString())) {
-                println("==== deletion query succeed ==== ");
+                log("deletion query succeed");
                 return query.getString(FeedbackType.SUCCESS.toString());
             } else {
-                println("==== deletion query failed ====");
+                log("deletion query failed");
                 return query.getString(FeedbackType.ERROR.toString());
             }
 
-        } catch (IOException e ) {
-            println("An error occur during deleting: " + e.getMessage());
+        } catch (JSONException e) {
+            logError("Bad Data: " + e.getMessage());
+            return "Bad Data！Search again Please!";
+        } catch (EOFException e) {
+            // no more input from the input stream means server failed
+            logError("Server down! Please Context server provider");
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
 
         socket = null;
@@ -209,16 +225,11 @@ public class Client {
         if (socket != null && socket.isConnected()) {
             // tell sever the client close the application to free the sever resources
             Feedback goodbyeFeedback = goodbye();
-            println(goodbyeFeedback.getMessage());
+            logFeedback(goodbyeFeedback);
         }
-        println("cleaned up");
-    }
 
-    /**
-     * shorter for print something
-     * @param thing string that want to print
-     */
-    public static void println(Object thing) { System.out.println(thing); }
+        log("cleaned up");
+    }
 
 
     /**
@@ -236,19 +247,16 @@ public class Client {
     private Feedback connect() {
         if ((socket != null) && (input != null) && (output != null)) {
             if (socket.isConnected()) {
-                return new Feedback(FeedbackType.SUCCESS, "==== connected ====");
+                return new Feedback(FeedbackType.SUCCESS, "==== still connected ====");
             }
         }
 
         try {
             socket = new Socket(ip_addr, port);
-
-            println("==== initiate connection with the sever ====");
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
             return new Feedback(FeedbackType.SUCCESS, "connection built!");
         } catch (IOException e) {
-            println(e.getMessage());
             return new Feedback(FeedbackType.ERROR,"Connection failed! " +
                     "The server might not be available yet!\nPlease try again later or check network connection!");
         }

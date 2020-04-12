@@ -11,6 +11,8 @@ import com.beust.jcommander.JCommander;
 
 import com.beust.jcommander.Parameter;
 
+import static utils.Logging.*;
+
 public class Server {
 	// parameters variable
 	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
@@ -43,14 +45,13 @@ public class Server {
 				return;
 			}
 		} catch (ParameterException e) {
-			println(e.getMessage());
-			println("Please use -h or --help for the usage");
+			logError(e.getMessage() + "\nPlease use -h or --help for the usage");
 			return;
 		}
 
 		saverCounter = autoSaveTime;
 
-	    println("Listening on " + port + " using " + dict_path);
+	    log("Listening on " + port + " using " + dict_path);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
@@ -63,12 +64,12 @@ public class Server {
 					saverCounter--;
 
 					if(saverCounter <= 0) {
-						println(Dictionary.getDictionary().writeBack().getMessage());
+						logFeedback(Dictionary.getDictionary().writeBack());
 						saverCounter = autoSaveTime;
 					}
 
 				} catch (InterruptedException e) {
-					println("system print failed");
+					logError("autoSave thread get interrupted");
 				}
 			}
 		});
@@ -81,7 +82,7 @@ public class Server {
 
 		try {
 			serverSocket = factory.createServerSocket(port);
-			println("server init successfully, now waiting for connection");
+			log("server init successfully");
 
 			while (true) {
 				Socket client = serverSocket.accept();
@@ -89,23 +90,13 @@ public class Server {
 
 				Runnable connection = new DicSocket(client, my_dict);
 				pool.exec(connection);
-				System.out.println("==== New Request Received ====");
+				log("New Request Received");
 			}
 
 		} catch (IOException e){
-			println("Error occur when creating server sockets");
-			println(e.getMessage());
+			logError(e.getMessage());
 		}
     }
-
-
-	/**
-	 * shorter for print something
-	 * @param thing string that want to print
-	 */
-    public static void println(Object thing) {
-    	System.out.println(thing);
-	}
 
 
 	/**
@@ -115,12 +106,12 @@ public class Server {
 
 		try {
 			if (serverSocket != null) {serverSocket.close();}
-			autoSaver.interrupt();
 		} catch (IOException e) {
-			println("closing error, now force quit!");
+			logError("closing error, now force quit!");
 		}
 
-		println(Dictionary.getDictionary().writeBack().getMessage());
-		println("cleaned up");
+		logFeedback(Dictionary.getDictionary().writeBack());
+
+		log("cleaned up");
 	}
 }

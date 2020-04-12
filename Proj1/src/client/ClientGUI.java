@@ -40,11 +40,15 @@ public class ClientGUI {
 
             output.setText("Searching |" + userInput + "|");
 
-            // set the feedback to text panel
-            output.setText(client.search(userInput.toLowerCase(), beautify.isSelected()));
+            String res = client.search(userInput.toLowerCase(), beautify.isSelected());
 
-            // reset the input section in order to wait for the next input
-            input.setText("");
+            // set the feedback to text panel
+            output.setText(res);
+
+            if(!res.equals("Bad Data！Search again Please!")) {
+                // reset the input section in order to wait for the next input
+                input.setText("");
+            }
         });
 
 
@@ -74,10 +78,13 @@ public class ClientGUI {
             parameters.put("meaning", meaning);
             parameters.put("reservedFormat", fixedFormat.isSelected());
 
-            String feedback = client.add(parameters);
+            String res = client.add(parameters);
 
-            output.setText(feedback);
-            input.setText("");
+            output.setText(res);
+
+            if (!res.equals("Bad Data！Search again Please!")) {
+                input.setText("");
+            }
         });
 
 
@@ -90,8 +97,12 @@ public class ClientGUI {
             }
 
             output.setText("Deleting |" + userInput + "|");
-            output.setText(client.del(userInput));
-            input.setText("");
+            String res = client.del(userInput);
+            output.setText(res);
+
+            if (!res.equals("Bad Data！Search again Please!")) {
+                input.setText("");
+            }
         });
 
         input.setFocusTraversalKeysEnabled(false);
