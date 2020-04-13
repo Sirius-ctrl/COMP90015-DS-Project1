@@ -11,7 +11,7 @@ import com.beust.jcommander.JCommander;
 
 import com.beust.jcommander.Parameter;
 
-import static utils.Logging.*;
+import static utils.Logger.*;
 
 public class Server {
 	// parameters variable

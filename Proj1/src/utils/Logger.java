@@ -1,6 +1,6 @@
 package utils;
 
-public class Logging {
+public class Logger {
     /**
      * Log the procedure indication of the system
      * @param things any indication you want to log

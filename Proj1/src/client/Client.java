@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import utils.*;
 
-import static utils.Logging.*;
+import static utils.Logger.*;
 
 public class Client {
 
