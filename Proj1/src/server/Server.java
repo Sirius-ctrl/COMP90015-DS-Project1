@@ -24,7 +24,7 @@ public class Server {
 	@Parameter(names={"--inactive", "-i"}, description = "The longest time (sec) we can wait for the respond before disconnected.")
 	private static int inactiveWaitingTime = 300;
 	@Parameter(names={"--autosave", "-a"}, description = "The longest time to auto backup dictionary data")
-	private static int autoSaveTime = 600;
+	private static int autoSaveTime = 300;
     @Parameter(names={"--suggestions", "-s"}, description = "Max number of suggest for fuzzy search, set 0 to disable")
 	private static int suggestions = 8;
 	@Parameter(names = {"-h","--help"}, help = true)
