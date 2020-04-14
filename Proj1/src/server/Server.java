@@ -21,9 +21,9 @@ public class Server {
 	private static String dictPath = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
 	private static int workers = 10;
-	@Parameter(names={"--inactive", "-i"}, description = "The longest time (sec) we can wait for the respond before disconnected.")
+	@Parameter(names={"--inactive", "-i"}, description = "The longest time (sec) we can wait for the respond before disconnected. Set to negative to disable")
 	private static int inactiveWaitingTime = 300;
-	@Parameter(names={"--autosave", "-a"}, description = "The longest time to auto backup dictionary data")
+	@Parameter(names={"--autosave", "-a"}, description = "The longest time to auto backup dictionary data. Set 0 to disable")
 	private static int autoSaveTime = 300;
     @Parameter(names={"--suggestions", "-s"}, description = "Max number of suggest for fuzzy search, set 0 to disable")
 	private static int suggestions = 8;
@@ -37,7 +37,7 @@ public class Server {
 	private static int saverCounter;
 
     public static void main(String...args) {
-		// parse the command line arguments
+		// parse the command line arguments and check if the argument is legal for some argument
 		try {
 			JCommander commander = JCommander.newBuilder().addObject(new Server()).build();
 			commander.parse(args);
@@ -46,10 +46,29 @@ public class Server {
 				commander.usage();
 				return;
 			}
+
+			if (workers < 0) {
+				logError("worker number should be > 0");
+				return;
+			}
+
+			if (inactiveWaitingTime == 0) {
+				logError("inactiveWaitingTime should not be 0, either positive or negative");
+				return;
+			}
+
+			if(autoSaveTime < 0) {
+				logError("auto save time should be > 0");
+				return;
+			}
+
+
 		} catch (ParameterException e) {
 			logError(e.getMessage() + "\nPlease use -h or --help for the usage");
 			return;
 		}
+
+		// set everything up
 
 		saverCounter = autoSaveTime;
 
@@ -57,25 +76,27 @@ public class Server {
 
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
-		// create a thread to auto backup the server every X minutes  (10 minutes by default)
-		autoSaver = new Thread(() -> {
-			while(true) {
-				try {
+		if (autoSaveTime > 0) {
+			// create a thread to auto backup the server every X minutes  (10 minutes by default)
+			autoSaver = new Thread(() -> {
+				while (true) {
+					try {
 
-					Thread.sleep(1000);
-					saverCounter--;
+						Thread.sleep(1000);
+						saverCounter--;
 
-					if(saverCounter <= 0) {
-						logFeedback(Dictionary.getDictionary().writeBack());
-						saverCounter = autoSaveTime;
+						if (saverCounter <= 0) {
+							logFeedback(Dictionary.getDictionary().writeBack());
+							saverCounter = autoSaveTime;
+						}
+
+					} catch (InterruptedException e) {
+						logError("autoSave thread get interrupted");
 					}
-
-				} catch (InterruptedException e) {
-					logError("autoSave thread get interrupted");
 				}
-			}
-		});
-		autoSaver.start();
+			});
+			autoSaver.start();
+		}
 
 		pool = new ThreadPool(workers);
 
