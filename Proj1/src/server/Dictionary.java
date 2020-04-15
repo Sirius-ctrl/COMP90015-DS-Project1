@@ -15,25 +15,27 @@ import java.util.*;
 import utils.Actions;
 import utils.Feedback;
 import utils.FeedbackType;
+import static utils.Logger.*;
 
 import static java.lang.System.exit;
 
 public class Dictionary {
 
     public static Dictionary dictionary;
-    public String dict_path;
-    private JSONObject my_dict;
-    private static int suggestions;
+    public String dictPath;
+
+    private JSONObject myDict;
+    private int suggestions;
     private HashMap<String, ArrayList<String>> symSpell = new HashMap<>();
 
     // if the path is not provided we can use the default one
     public Dictionary () {
-        this.dict_path = "src/new_dictionary.json";
+        this.dictPath = "src/new_dictionary.json";
         loadFile();
     }
 
-    public Dictionary (String dict_path, int suggestion) {
-        this.dict_path = dict_path;
+    public Dictionary (String dictPath, int suggestion) {
+        this.dictPath = dictPath;
         this.suggestions = suggestion;
         loadFile();
     }
@@ -46,9 +48,9 @@ public class Dictionary {
         return dictionary;
     }
 
-    public static Dictionary getDictionary(String dict_path, int suggestion) {
+    public static Dictionary getDictionary(String dictPath, int suggestion) {
         if(dictionary == null) {
-            dictionary = new Dictionary(dict_path, suggestion);
+            dictionary = new Dictionary(dictPath, suggestion);
         }
         return dictionary;
     }
@@ -59,42 +61,55 @@ public class Dictionary {
      */
     public synchronized Feedback writeBack() {
 
-        if (my_dict != null) {
-            try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dict_path))) {
-                my_dict.write(writer);
+        if (myDict != null) {
+            try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dictPath))) {
+                myDict.write(writer);
                 writer.write("\n");
                 writer.flush();
-                return new Feedback(FeedbackType.SUCCESS, "==== Write back successfully ====");
+                return new Feedback(FeedbackType.SUCCESS, "Write back successfully");
             } catch (IOException e) {
                 return new Feedback(FeedbackType.ERROR, e.getMessage());
             }
         }
 
-        return new Feedback(FeedbackType.SUCCESS, "==== dict is null, nothing to write ====");
+        return new Feedback(FeedbackType.SUCCESS, "dict is null, nothing to write");
     }
 
     private void loadFile() {
         try {
-            FileReader file = new FileReader(this.dict_path);
+            FileReader file = new FileReader(this.dictPath);
             JSONTokener token = new JSONTokener(file);
-            this.my_dict = new JSONObject(token);
+            this.myDict = new JSONObject(token);
         } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+            logError(e.getMessage());
             exit(0);
         } catch (JSONException e) {
-            System.out.println("The dictionary is not in a standard json format: " + e.getMessage());
+            logError("The dictionary is not in a standard json format: " + e.getMessage());
             exit(0);
         }
 
         if (suggestions != 0) {
             // generate Symmetric Delete Spelling for quick word auto-correction
-            for (Iterator<String> it = my_dict.keys(); it.hasNext(); ) {
+            for (Iterator<String> it = myDict.keys(); it.hasNext(); ) {
                 String word = it.next();
                 HashSet<String> dSet;
 
                 // only consider edit distance = 1 for now, can be extended if necessary
                 dSet = generateDelete(word, 1);
                 updateSysSpell(word, dSet);
+            }
+        }
+    }
+
+
+    private void updateSysSpell (String word, HashSet<String> dSet){
+        for (String dWord: dSet) {
+            if(symSpell.containsKey(dWord)) {
+                symSpell.get(dWord).add(word);
+            } else {
+                ArrayList<String> temp = new ArrayList<>();
+                temp.add(word);
+                symSpell.put(dWord, temp);
             }
         }
     }
@@ -117,17 +132,6 @@ public class Dictionary {
         return res;
     }
 
-    private void updateSysSpell (String word, HashSet<String> dSet){
-        for (String dWord: dSet) {
-            if(symSpell.containsKey(dWord)) {
-                symSpell.get(dWord).add(word);
-            } else {
-                ArrayList<String> temp = new ArrayList<>();
-                temp.add(word);
-                symSpell.put(dWord, temp);
-            }
-        }
-    }
 
 
     /**
@@ -137,15 +141,15 @@ public class Dictionary {
      */
     public Feedback search(String word) {
 
-        if (my_dict.has(word)){
-            return new Feedback(FeedbackType.SUCCESS, my_dict.getString(word));
+        if (myDict.has(word)){
+            return new Feedback(FeedbackType.SUCCESS, myDict.getString(word));
         } else {
             StringBuilder res = new StringBuilder();
             res.append("Word does not exist in the dictionary, " +
                     "please check the spell or add a meaning for the word!\n\n");
 
             if (suggestions != 0) {
-                res.append("------------- Suggestions -------------\n");
+                res.append("------------- Suggestions -------------\n\n");
                 res.append(fuzzySearch(word));
             }
 
@@ -209,7 +213,7 @@ public class Dictionary {
 
     private void buildFuzzy(HashSet<String> dSet, HashSet<String> candidates) {
         for (String dWord:dSet) {
-            if (my_dict.has(dWord)) {
+            if (myDict.has(dWord)) {
                 candidates.add(dWord);
             }
 
@@ -249,11 +253,11 @@ public class Dictionary {
      */
     private Feedback add(String word, String info){
 
-        if (my_dict.has(word)) {
+        if (myDict.has(word)) {
             return new Feedback(FeedbackType.ERROR, "Word already exist");
         }
 
-        my_dict.put(word, info);
+        myDict.put(word, info);
         return new Feedback(FeedbackType.SUCCESS, "Meaning added successfully");
     }
 
@@ -261,8 +265,8 @@ public class Dictionary {
     // return either success or error message (word does not exist)
     private Feedback delete(String word) {
 
-        if (my_dict.has(word)) {
-            my_dict.remove(word);
+        if (myDict.has(word)) {
+            myDict.remove(word);
             return new Feedback(FeedbackType.SUCCESS, "Delete successfully");
         }
 

@@ -2,6 +2,7 @@ package server;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.ArrayList;
+import static utils.Logger.*;
 
 public class ThreadPool {
 
@@ -9,7 +10,7 @@ public class ThreadPool {
     private ArrayList<Thread> workers;
 
     public ThreadPool(int totalThread) {
-        println("creating a pool with " + totalThread +" workers");
+        log("creating a pool with " + totalThread +" workers");
         this.queue = new LinkedBlockingQueue<>();
         this.workers = new ArrayList<>();
 
@@ -29,10 +30,6 @@ public class ThreadPool {
             queue.add(job);
             queue.notify();
         }
-    }
-
-    public static void println(String thing) {
-        System.out.println(thing);
     }
 
 

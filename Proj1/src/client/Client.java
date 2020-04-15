@@ -17,7 +17,7 @@ public class Client {
     @Parameter(names={"--port", "-p"}, description = "Port number to connect server")
     private static int port = 3456;
     @Parameter(names={"--addr", "-a"}, description = "IP address to server")
-    private static String ip_addr = "127.0.0.1";
+    private static String ip = "127.0.0.1";
     @Parameter(names={"--help", "-h"}, help = true)
     private static boolean help = false;
 
@@ -238,7 +238,7 @@ public class Client {
      */
     public static boolean isHelp() { return help; }
 
-    public static String getIp_addr() { return ip_addr; }
+    public static String getIP() { return ip; }
 
     public static int getPort() { return port; }
 
@@ -252,7 +252,7 @@ public class Client {
         }
 
         try {
-            socket = new Socket(ip_addr, port);
+            socket = new Socket(ip, port);
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
             return new Feedback(FeedbackType.SUCCESS, "connection built!");

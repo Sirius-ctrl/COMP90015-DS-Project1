@@ -32,8 +32,6 @@ public class Server {
 
 
 	private static ServerSocket serverSocket;
-	private static ThreadPool pool;
-	private static Thread autoSaver;
 	private static int saverCounter;
 
     public static void main(String...args) {
@@ -78,7 +76,7 @@ public class Server {
 
 		if (autoSaveTime > 0) {
 			// create a thread to auto backup the server every X minutes  (10 minutes by default)
-			autoSaver = new Thread(() -> {
+			Thread autoSaver = new Thread(() -> {
 				while (true) {
 					try {
 
@@ -98,7 +96,7 @@ public class Server {
 			autoSaver.start();
 		}
 
-		pool = new ThreadPool(workers);
+		ThreadPool pool = new ThreadPool(workers);
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		Dictionary myDict = Dictionary.getDictionary(dictPath, suggestions);
