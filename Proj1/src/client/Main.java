@@ -23,14 +23,18 @@ public class Main {
             return;
         }
 
-        System.out.println("client connecting " + Client.getIp_addr() + ":" + Client.getPort());
+        System.out.println("client connecting " + Client.getIP() + ":" + Client.getPort());
 
         Client client = Client.getClient();
         // clean up when the application is closed
         Runtime.getRuntime().addShutdownHook(new Thread(client::closeAll));
 
-        ClientGUI gui = ClientGUI.getGUI();
-        gui.setOutput("Welcome, please enter a word in the above blank if you want to search/delete, " +
-                "or write some extra meaning in this section to submit a meaning of a new word");
+        // put client into event  thread
+        java.awt.EventQueue.invokeLater(() -> {
+            ClientGUI gui = ClientGUI.getGUI();
+            gui.setOutput("Welcome, please enter a word in the above blank if you want to search/delete, " +
+                    "or write some extra meaning in this section to submit a meaning of a new word");
+        });
+
     }
 }

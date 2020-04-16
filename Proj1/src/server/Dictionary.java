@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import utils.Actions;
 import utils.Feedback;
@@ -72,6 +73,7 @@ public class Dictionary {
             }
         }
 
+
         return new Feedback(FeedbackType.SUCCESS, "dict is null, nothing to write");
     }
 
@@ -79,7 +81,7 @@ public class Dictionary {
         try {
             FileReader file = new FileReader(this.dictPath);
             JSONTokener token = new JSONTokener(file);
-            this.myDict = new JSONObject(token);
+            myDict = new JSONObject(token);
         } catch (FileNotFoundException e) {
             logError(e.getMessage());
             exit(0);

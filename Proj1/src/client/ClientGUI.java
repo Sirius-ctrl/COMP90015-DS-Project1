@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.util.HashMap;
 
 import utils.FeedbackType;
+import static utils.Logger.*;
 
 public class ClientGUI {
     private JPanel background;
@@ -38,17 +39,16 @@ public class ClientGUI {
                 return;
             }
 
-            output.setText("Searching |" + userInput + "|");
+            output.setText("Searching |" + userInput + "| ... too many users, please wait!");
 
-            String res = client.search(userInput.toLowerCase(), beautify.isSelected());
+            new Thread(() -> {
+                try {
+                    ClientGUI.getGUI().setOutput(client.search(userInput.toLowerCase(), beautify.isSelected()));
+                } catch (Exception ex) {
+                    logError(ex.getMessage());
+                }
+            }).start();
 
-            // set the feedback to text panel
-            output.setText(res);
-
-            if(!res.equals("Bad Data！Search again Please!")) {
-                // reset the input section in order to wait for the next input
-                input.setText("");
-            }
         });
 
 
@@ -78,13 +78,16 @@ public class ClientGUI {
             parameters.put("meaning", meaning);
             parameters.put("reservedFormat", fixedFormat.isSelected());
 
-            String res = client.add(parameters);
+            output.setText("Adding |" + userInput + "| from server ... too many users, please wait!");
 
-            output.setText(res);
+            new Thread(() -> {
+                try {
+                    ClientGUI.getGUI().setOutput(client.add(parameters));
+                } catch (Exception ex) {
+                    logError(ex.getMessage());
+                }
+            }).start();
 
-            if (!res.equals("Bad Data！Search again Please!")) {
-                input.setText("");
-            }
         });
 
 
@@ -96,13 +99,16 @@ public class ClientGUI {
                 return;
             }
 
-            output.setText("Deleting |" + userInput + "|");
-            String res = client.del(userInput);
-            output.setText(res);
+            output.setText("Deleting |" + userInput + "| from server ... too many users, please wait!");
 
-            if (!res.equals("Bad Data！Search again Please!")) {
-                input.setText("");
-            }
+            new Thread(() -> {
+                try {
+                    ClientGUI.getGUI().setOutput(client.del(userInput));
+                } catch (Exception ex) {
+                    logError(ex.getMessage());
+                }
+            }).start();
+
         });
 
         input.setFocusTraversalKeysEnabled(false);
@@ -158,7 +164,15 @@ public class ClientGUI {
      * Set the user output panel with some text
      * @param text text will be set
      */
-    public void setOutput(String text) { output.setText(text); }
+    public void setOutput(String text) {
+
+        if(!text.equals("Bad Data！Search again Please!")) {
+            // reset the input section in order to wait for the next input
+            input.setText("");
+        }
+
+        output.setText(text);
+    }
 
     /**
      * get current display width restriction

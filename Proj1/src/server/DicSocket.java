@@ -5,9 +5,9 @@ import utils.Feedback;
 import utils.FeedbackType;
 import org.json.JSONObject;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
+import static utils.Logger.*;
 
 public class DicSocket implements Runnable {
 
@@ -53,7 +53,7 @@ public class DicSocket implements Runnable {
             output.close();
             client.close();
         } catch (IOException e) {
-            System.out.println("Error occur when server communicating with client in DicSocket:" + e.getMessage());
+            logError("Failed to connect client using socket, might be client quit or timeout:" + e.getMessage());
         }
     }
 

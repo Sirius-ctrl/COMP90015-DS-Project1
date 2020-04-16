@@ -15,12 +15,12 @@ import static utils.Logger.*;
 
 public class Server {
 	// parameters variable
-	@Parameter(names={"--port", "-p"}, description = "Port number for listening")
-	private static int port = 3456;
+	@Parameter(names={"--port", "-p"}, description = "Port number for listening, default will random assign a port number")
+	private static int port = 0;
 	@Parameter(names={"--dict", "-d"}, description = "Path to dictionary")
 	private static String dictPath = "./dictionary.json";
 	@Parameter(names={"--nworkers", "-n"}, description = "Number of workers (Thread)")
-	private static int workers = 10;
+	private static int workers = 30;
 	@Parameter(names={"--inactive", "-i"}, description = "The longest time (sec) we can wait for the respond before disconnected. Set to negative to disable")
 	private static int inactiveWaitingTime = 300;
 	@Parameter(names={"--autosave", "-a"}, description = "The longest time to auto backup dictionary data. Set 0 to disable")
@@ -70,8 +70,6 @@ public class Server {
 
 		saverCounter = autoSaveTime;
 
-	    log("Listening on " + port + " using " + dictPath);
-
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
 		if (autoSaveTime > 0) {
@@ -103,7 +101,7 @@ public class Server {
 
 		try {
 			serverSocket = factory.createServerSocket(port);
-			log("server init successfully");
+			log("Listening on " + serverSocket.getLocalPort() + " using " + dictPath);
 
 			while (true) {
 				Socket client = serverSocket.accept();

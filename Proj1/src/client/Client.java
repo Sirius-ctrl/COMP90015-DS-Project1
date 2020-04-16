@@ -280,7 +280,7 @@ public class Client {
             return new Feedback(FeedbackType.ERROR, "Cannot disconnect from server");
         }
 
-        return new Feedback(FeedbackType.SUCCESS, "==== goodbye ====");
+        return new Feedback(FeedbackType.SUCCESS, "goodbye");
     }
 
 }
