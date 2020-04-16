@@ -24,10 +24,17 @@ public class ClientGUI {
     private static Client client = Client.getClient();
     private static ClientGUI gui;
 
+    private static boolean processing = false;
+    private static boolean showed = false;
+
     public ClientGUI() {
 
         searchButton.addActionListener(e -> {
             String userInput = input.getText();
+
+            if(isWaiting()){
+                return;
+            }
 
             if (userInput.length() == 0) {
                 output.setText("Please enter a search word!");
@@ -39,7 +46,8 @@ public class ClientGUI {
                 return;
             }
 
-            output.setText("Searching |" + userInput + "| ... too many users, please wait!");
+            output.setText("Searching |" + userInput + "| from server ... too many users, please wait!");
+            setProcessing(true);
 
             new Thread(() -> {
                 try {
@@ -47,13 +55,18 @@ public class ClientGUI {
                 } catch (Exception ex) {
                     logError(ex.getMessage());
                 }
+                // reset indicator
+                resetState();
             }).start();
-
         });
 
 
         addButton.addActionListener(e -> {
             String userInput = input.getText();
+
+            if(isWaiting()) {
+                return;
+            }
 
             if (userInput.length() == 0) {
                 output.setText("Please enter the word you want to add!");
@@ -79,6 +92,7 @@ public class ClientGUI {
             parameters.put("reservedFormat", fixedFormat.isSelected());
 
             output.setText("Adding |" + userInput + "| from server ... too many users, please wait!");
+            setProcessing(true);
 
             new Thread(() -> {
                 try {
@@ -86,6 +100,8 @@ public class ClientGUI {
                 } catch (Exception ex) {
                     logError(ex.getMessage());
                 }
+                // reset indicator
+                resetState();
             }).start();
 
         });
@@ -94,12 +110,17 @@ public class ClientGUI {
         deleteButton.addActionListener(e -> {
             String userInput = input.getText();
 
+            if(isWaiting()) {
+                return;
+            }
+
             if (userInput.length() == 0) {
                 output.setText("Please enter the word you want to delete!");
                 return;
             }
 
             output.setText("Deleting |" + userInput + "| from server ... too many users, please wait!");
+            setProcessing(true);
 
             new Thread(() -> {
                 try {
@@ -107,6 +128,7 @@ public class ClientGUI {
                 } catch (Exception ex) {
                     logError(ex.getMessage());
                 }
+                resetState();
             }).start();
 
         });
@@ -149,6 +171,21 @@ public class ClientGUI {
         buildGUI();
     }
 
+
+    private boolean isWaiting() {
+        // investigate whether there is already a query waiting for responds
+        if (processing) {
+            if(!showed) {
+                setOutput(output.getText() + "\n\n still waiting ....");
+                setShowed(true);
+            }
+            log("still processing previous command");
+            return true;
+        }
+        return false;
+    }
+
+
     /**
      * return a gui instance
      * @return the gui instance
@@ -172,6 +209,19 @@ public class ClientGUI {
         }
 
         output.setText(text);
+    }
+
+    public void setProcessing(boolean state) {
+        processing = state;
+    }
+
+    public void setShowed(boolean state) {
+        showed = state;
+    }
+
+    public void resetState() {
+        setProcessing(false);
+        setShowed(false);
     }
 
     /**
