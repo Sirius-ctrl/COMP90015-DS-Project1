@@ -70,6 +70,9 @@ public class Server {
 
 		saverCounter = autoSaveTime;
 
+		ServerSocketFactory factory = ServerSocketFactory.getDefault();
+		Dictionary myDict = Dictionary.getDictionary(dictPath, suggestions);
+
 		Runtime.getRuntime().addShutdownHook(new Thread(Server::closeAll));
 
 		if (autoSaveTime > 0) {
@@ -95,9 +98,6 @@ public class Server {
 		}
 
 		ThreadPool pool = new ThreadPool(workers);
-
-		ServerSocketFactory factory = ServerSocketFactory.getDefault();
-		Dictionary myDict = Dictionary.getDictionary(dictPath, suggestions);
 
 		try {
 			serverSocket = factory.createServerSocket(port);

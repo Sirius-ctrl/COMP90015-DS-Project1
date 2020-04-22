@@ -83,8 +83,8 @@ public class Dictionary {
             JSONTokener token = new JSONTokener(file);
             myDict = new JSONObject(token);
         } catch (FileNotFoundException e) {
-            logError(e.getMessage());
-            exit(0);
+            logError("when loading the dictionary, and error occur: " + e.getMessage());
+            System.exit(0);
         } catch (JSONException e) {
             logError("The dictionary is not in a standard json format: " + e.getMessage());
             exit(0);
